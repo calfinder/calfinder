@@ -86,9 +86,9 @@ export function CourseDetailCard({
   );
 }
 
-const TRB_SNAP = 15; // snap to nearest 15 minutes on release
+const TRB_SNAP = 30; // handles rest only on times ending in :00 or :30
 const TRB_MIN_GAP = 30; // minimum window size in minutes
-const snapTo15 = (v: number) => Math.round(v / TRB_SNAP) * TRB_SNAP;
+const snapToStep = (v: number) => Math.round(v / TRB_SNAP) * TRB_SNAP;
 
 type DragMode = "start" | "end" | "range";
 
@@ -121,8 +121,8 @@ export function TimeRangeBar({
     setLive(next);
   }, []);
 
-  // While dragging we follow the pointer with unsnapped (per-minute) values so
-  // motion feels continuous; snapping to 15 happens only on release.
+  // While dragging we snap to 30-minute steps so the handles only ever rest on
+  // times ending in :00 or :30.
   const start = live ? live.start : startMin;
   const end = live ? live.end : endMin;
 
@@ -200,8 +200,8 @@ export function TimeRangeBar({
     const onUp = () => {
       const cur = liveRef.current;
       if (cur) {
-        let s = snapTo15(cur.start);
-        let e = snapTo15(cur.end);
+        let s = snapToStep(cur.start);
+        let e = snapToStep(cur.end);
         s = Math.max(min, Math.min(s, max - TRB_MIN_GAP));
         e = Math.min(max, Math.max(e, s + TRB_MIN_GAP));
         onChange(s, e);
@@ -224,6 +224,9 @@ export function TimeRangeBar({
   const pct0 = minutesToBarPercent(start, min, max);
   const pct1 = minutesToBarPercent(end, min, max);
   const w = Math.max(0, pct1 - pct0);
+  // Handles glide continuously; the time we show/commit always lands on :00 or :30.
+  const dispStart = snapToStep(start);
+  const dispEnd = snapToStep(end);
 
   return (
     <div className="time-range-dual">
@@ -263,7 +266,7 @@ export function TimeRangeBar({
             beginDrag("start", e.clientX);
           }}
         >
-          {drag === "start" && <span className="dual-range-bubble">{formatLabel(start)}</span>}
+          {drag === "start" && <span className="dual-range-bubble">{formatLabel(dispStart)}</span>}
         </button>
         <button
           type="button"
@@ -291,13 +294,13 @@ export function TimeRangeBar({
             beginDrag("end", e.clientX);
           }}
         >
-          {drag === "end" && <span className="dual-range-bubble">{formatLabel(end)}</span>}
+          {drag === "end" && <span className="dual-range-bubble">{formatLabel(dispEnd)}</span>}
         </button>
       </div>
       <p className="time-range-readout-line" aria-hidden>
-        <span className="time-range-time">{formatLabel(start)}</span>
+        <span className="time-range-time">{formatLabel(dispStart)}</span>
         <span className="time-range-sep">–</span>
-        <span className="time-range-time">{formatLabel(end)}</span>
+        <span className="time-range-time">{formatLabel(dispEnd)}</span>
       </p>
     </div>
   );

@@ -36,8 +36,8 @@ import { SavedTab } from "./calfinder/SavedTab";
 import { SearchTab } from "./calfinder/SearchTab";
 import type { PreparedCourse, TopTab, WeekdayToken } from "./calfinder/types";
 
-// Editor tools (stats + database download) are for local development only.
-const SHOW_EDITOR = process.env.NODE_ENV === "development";
+// Editor tools (stats + database download) are hidden from the app UI.
+const SHOW_EDITOR = false;
 
 // Minimum size of the free-time window, in minutes.
 const FREE_RANGE_MIN_GAP = 30;
@@ -334,7 +334,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
   return (
     <>
       <style jsx global>{`
-        :root { --navy:#000; --navy-light:#333; --gold:#fff; --gold-dim:#525252; --bg:#fafafa; --cream:#fafafa; --cream-dark:#f2f2f2; --text:#000; --muted:#666; --border:#eaeaea; --chip-bg:#fff; --surface:#fff; --font-display:var(--font-geist-sans),system-ui,sans-serif; --font-body:var(--font-geist-sans),system-ui,sans-serif; --font-mono:var(--font-geist-mono),ui-monospace,monospace; --radius-sm:6px; --radius-md:8px; --radius-lg:12px; --radius-pill:999px; --shadow-sm:0 1px 2px rgba(0,0,0,.04); --shadow-md:0 2px 6px rgba(0,0,0,.06); --shadow-lg:0 8px 24px rgba(0,0,0,.10);}
+        :root { --navy:#000; --navy-light:#333; --gold:#fff; --gold-dim:#525252; --bg:#fafafa; --cream:#fafafa; --cream-dark:#f2f2f2; --text:#000; --muted:#666; --border:#eaeaea; --chip-bg:#fff; --surface:#fff; --font-display:var(--font-instrument-serif),Georgia,"Times New Roman",serif; --font-body:var(--font-geist-sans),system-ui,sans-serif; --font-mono:var(--font-geist-mono),ui-monospace,monospace; --radius-sm:6px; --radius-md:8px; --radius-lg:12px; --radius-pill:999px; --shadow-sm:0 1px 2px rgba(0,0,0,.04); --shadow-md:0 2px 6px rgba(0,0,0,.06); --shadow-lg:0 8px 24px rgba(0,0,0,.10);}
 
         .redesign-root,.redesign-root *{box-sizing:border-box}.redesign-root{min-height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:var(--font-body)}
         body,body *{transition:background-color 300ms ease,color 300ms ease,border-color 300ms ease,box-shadow 300ms ease;}
@@ -351,7 +351,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
         .hero-title,.subheadline,.description,.form-section{max-width:960px}.hero-title,.subheadline,.description,.form-section,.cta-wrapper{animation:float-in 520ms cubic-bezier(.16,1,.3,1) both}.subheadline{animation-delay:60ms}.description{animation-delay:110ms}.cta-wrapper{animation-delay:160ms}@keyframes float-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
         .eyebrow{font-family:var(--font-body);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:1.5rem}
         .hero-title{font-family:var(--font-display);font-size:clamp(2.6rem,6vw,3.75rem);font-weight:600;line-height:1.05;color:var(--text);letter-spacing:-.04em;margin-bottom:.9rem}.subheadline{font-family:var(--font-display);font-size:clamp(1.2rem,3vw,1.5rem);font-weight:400;font-style:normal;color:var(--muted);letter-spacing:-.02em;margin-bottom:1.75rem}.description{font-size:1rem;line-height:1.75;color:var(--muted);max-width:520px;margin-bottom:3.5rem}
-        .divider{height:1px;background:var(--border);margin:3rem 0}.form-section{margin-bottom:2.5rem}.section-label{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}.step-number{font-family:var(--font-mono);font-size:.65rem;color:var(--muted);background:var(--cream-dark);border:1px solid var(--border);border-radius:var(--radius-pill);padding:.2rem .6rem;letter-spacing:.04em}.section-title{font-family:var(--font-display);font-size:1.6rem;font-weight:500;letter-spacing:-.02em;text-transform:none;color:var(--text)}
+        .divider{height:1px;background:var(--border);margin:3rem 0}.form-section{margin-bottom:2.5rem}.section-label{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}.step-number{font-family:var(--font-mono);font-size:.7rem;font-weight:500;color:var(--on-accent);background:var(--accent);border:none;border-radius:7px;padding:0 .1rem;letter-spacing:.01em;line-height:1;display:inline-flex;align-items:center;justify-content:center;height:1.55rem;min-width:1.85rem;box-shadow:0 1px 2px rgba(0,0,0,.18)}.section-title{font-family:var(--font-display);font-size:1.95rem;font-weight:400;letter-spacing:-.01em;text-transform:none;color:var(--text)}
         .when-section{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:1.25rem;row-gap:.75rem}.when-section .section-label{grid-column:1;grid-row:1;align-self:center;margin-bottom:0}.when-section .time-range-block{grid-column:1/-1;grid-row:2}.when-section .day-strip{grid-column:2;grid-row:1;align-self:center}.when-free-row{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;flex:1;min-width:0}.when-free-row .day-btn.when-now-btn{flex:0 0 auto;white-space:nowrap}.when-free-row .day-btn.when-now-btn:hover:not(.active){background:rgba(0,0,0,.04)}
         .time-range-block{display:flex;align-items:flex-start;gap:.85rem;width:100%;min-width:0;flex:1}
         .time-range-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:.35rem}
