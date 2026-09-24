@@ -227,6 +227,9 @@ export function TimeRangeBar({
   // Handles glide continuously; the time we show/commit always lands on :00 or :30.
   const dispStart = snapToStep(start);
   const dispEnd = snapToStep(end);
+    // Keep the 16px thumbs fully inside the track: their centers travel within an
+    // 8px inset on each end, and the fill shares the same mapping so it stays aligned.
+    const insetPos = (pct: number) => `calc((100% - 16px) * ${pct / 100} + 8px)`;
 
   return (
     <div className="time-range-dual">
@@ -239,11 +242,11 @@ export function TimeRangeBar({
         aria-label="Free time window"
       >
         <div className="dual-range-bg" />
-        <div className="dual-range-fill" style={{ left: `${pct0}%`, width: `${w}%` }} />
+        <div className="dual-range-fill" style={{ left: insetPos(pct0), width: `calc((100% - 16px) * ${w / 100})` }} />
         <button
           type="button"
           className={`dual-range-thumb dual-range-thumb--start${drag === "start" ? " is-dragging" : ""}`}
-          style={{ left: `${pct0}%` }}
+          style={{ left: insetPos(pct0) }}
           role="slider"
           aria-label="Window start"
           aria-valuemin={min}
@@ -271,7 +274,7 @@ export function TimeRangeBar({
         <button
           type="button"
           className={`dual-range-thumb dual-range-thumb--end${drag === "end" ? " is-dragging" : ""}`}
-          style={{ left: `${pct1}%` }}
+          style={{ left: insetPos(pct1) }}
           role="slider"
           aria-label="Window end"
           aria-valuemin={startMin + TRB_MIN_GAP}
