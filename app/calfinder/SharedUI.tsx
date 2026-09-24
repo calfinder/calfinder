@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Course } from "../../lib/types";
-import { LOCKED_WINDOW_MINUTES } from "./constants";
 import {
   buildMapsUrl,
   formatBuildingLabel,
@@ -14,7 +13,6 @@ import {
   getDisplayDepartment,
   minutesToBarPercent,
   rateMyProfessorSearchUrl,
-  snapToHalfHour,
   stripPrereqText
 } from "./helpers";
 
@@ -88,103 +86,132 @@ export function CourseDetailCard({
   );
 }
 
+const TRB_SNAP = 30; // handles rest only on times ending in :00 or :30
+const TRB_MIN_GAP = 30; // minimum window size in minutes
+const snapToStep = (v: number) => Math.round(v / TRB_SNAP) * TRB_SNAP;
+
+type DragMode = "start" | "end" | "range";
+
 type TimeRangeBarProps = {
   startMin: number;
   endMin: number;
-  onStartChange: (snapped: number) => void;
-  onEndChange: (snapped: number) => void;
+  onChange: (nextStart: number, nextEnd: number) => void;
   min: number;
   max: number;
   formatLabel: (m: number) => string;
-  endLocked: boolean;
 };
 
 export function TimeRangeBar({
   startMin,
   endMin,
-  onStartChange,
-  onEndChange,
+  onChange,
   min,
   max,
-  formatLabel,
-  endLocked
+  formatLabel
 }: TimeRangeBarProps) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [drag, setDrag] = useState<"start" | "end" | "range" | null>(null);
-  const dragRangeAnchor = useRef<{ clientX: number; startMin: number; endMin: number } | null>(null);
+  const [drag, setDrag] = useState<DragMode | null>(null);
+  const [live, setLive] = useState<{ start: number; end: number } | null>(null);
+  const liveRef = useRef<{ start: number; end: number } | null>(null);
+  const dragRef = useRef<{ mode: DragMode; anchorX: number; startAt: number; endAt: number } | null>(null);
 
-  const toSnappedFromClientX = useCallback(
+  const setLiveBoth = useCallback((s: number, e: number) => {
+    const next = { start: Math.round(s), end: Math.round(e) };
+    liveRef.current = next;
+    setLive(next);
+  }, []);
+
+  // While dragging we snap to 30-minute steps so the handles only ever rest on
+  // times ending in :00 or :30.
+  const start = live ? live.start : startMin;
+  const end = live ? live.end : endMin;
+
+  const valueFromX = useCallback(
     (clientX: number) => {
       const el = trackRef.current;
       if (!el) return null;
       const rect = el.getBoundingClientRect();
-      const t = (clientX - rect.left) / Math.max(1, rect.width);
-      const raw = min + t * (max - min);
-      return snapToHalfHour(Math.max(min, Math.min(max, raw)));
+      const t = Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width)));
+      return min + t * (max - min);
     },
     [min, max]
   );
 
-  const startRef = useRef(startMin);
-  const endRef = useRef(endMin);
-  startRef.current = startMin;
-  endRef.current = endMin;
+  const moveTo = useCallback(
+    (clientX: number) => {
+      const d = dragRef.current;
+      const el = trackRef.current;
+      if (!d || !el) return;
+      if (d.mode === "range") {
+        const rect = el.getBoundingClientRect();
+        const perMin = rect.width / Math.max(1, max - min);
+        const win = d.endAt - d.startAt;
+        let s = d.startAt + (clientX - d.anchorX) / perMin;
+        s = Math.max(min, Math.min(s, max - win));
+        setLiveBoth(s, s + win);
+        return;
+      }
+      const v = valueFromX(clientX);
+      if (v === null) return;
+      if (d.mode === "start") {
+        setLiveBoth(Math.max(min, Math.min(v, d.endAt - TRB_MIN_GAP)), d.endAt);
+      } else {
+        setLiveBoth(d.startAt, Math.min(max, Math.max(v, d.startAt + TRB_MIN_GAP)));
+      }
+    },
+    [valueFromX, min, max, setLiveBoth]
+  );
 
-  const onBarPointerDown = (e: React.PointerEvent) => {
-    if ((e.target as HTMLElement).closest(".dual-range-thumb")) return;
-    if ((e.target as HTMLElement).closest(".dual-range-fill")) {
-      dragRangeAnchor.current = { clientX: e.clientX, startMin, endMin };
-      setDrag("range");
+  const beginDrag = useCallback(
+    (mode: DragMode, clientX: number) => {
+      dragRef.current = { mode, anchorX: clientX, startAt: startMin, endAt: endMin };
+      setLiveBoth(startMin, endMin);
+      setDrag(mode);
+    },
+    [startMin, endMin, setLiveBoth]
+  );
+
+  const onTrackPointerDown = (e: React.PointerEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest(".dual-range-thumb")) return;
+    if (target.closest(".dual-range-fill")) {
+      beginDrag("range", e.clientX);
       return;
     }
-    const snapped = toSnappedFromClientX(e.clientX);
-    if (snapped === null) return;
-    const distS = Math.abs(snapped - startMin);
-    const distE = Math.abs(snapped - endMin);
-    if (distS <= distE) {
-      if (endLocked) {
-        onStartChange(Math.max(min, Math.min(snapped, max - LOCKED_WINDOW_MINUTES)));
-      } else {
-        onStartChange(Math.max(min, Math.min(snapped, endMin - LOCKED_WINDOW_MINUTES)));
-      }
+    // Press anywhere on the track: move the nearest handle there and keep dragging it.
+    const v = valueFromX(e.clientX);
+    if (v === null) return;
+    const mode: DragMode = Math.abs(v - startMin) <= Math.abs(v - endMin) ? "start" : "end";
+    dragRef.current = { mode, anchorX: e.clientX, startAt: startMin, endAt: endMin };
+    setDrag(mode);
+    if (mode === "start") {
+      setLiveBoth(Math.max(min, Math.min(v, endMin - TRB_MIN_GAP)), endMin);
     } else {
-      onEndChange(Math.min(max, Math.max(snapped, startMin + LOCKED_WINDOW_MINUTES)));
+      setLiveBoth(startMin, Math.min(max, Math.max(v, startMin + TRB_MIN_GAP)));
     }
   };
 
   useEffect(() => {
     if (!drag) return;
     const onMove = (e: PointerEvent) => {
-      if (drag === "range") {
-        const anchor = dragRangeAnchor.current;
-        if (!anchor) return;
-        const el = trackRef.current;
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const pxPerMin = rect.width / Math.max(1, max - min);
-        const deltaPx = e.clientX - anchor.clientX;
-        const rangeWindow = anchor.endMin - anchor.startMin;
-        const rawStart = anchor.startMin + deltaPx / pxPerMin;
-        const newStart = Math.max(min, Math.min(snapToHalfHour(rawStart), max - rangeWindow));
-        const newEnd = newStart + rangeWindow;
-        onStartChange(newStart);
-        onEndChange(newEnd);
-        return;
-      }
-      const s = toSnappedFromClientX(e.clientX);
-      if (s === null) return;
-      if (drag === "start") {
-        if (endLocked) {
-          onStartChange(Math.max(min, Math.min(s, max - LOCKED_WINDOW_MINUTES)));
-        } else {
-          onStartChange(Math.max(min, Math.min(s, endRef.current - LOCKED_WINDOW_MINUTES)));
-        }
-      } else {
-        onEndChange(Math.min(max, Math.max(s, startRef.current + LOCKED_WINDOW_MINUTES)));
-      }
+      e.preventDefault();
+      moveTo(e.clientX);
     };
-    const onUp = () => { dragRangeAnchor.current = null; setDrag(null); };
-    window.addEventListener("pointermove", onMove);
+    const onUp = () => {
+      const cur = liveRef.current;
+      if (cur) {
+        let s = snapToStep(cur.start);
+        let e = snapToStep(cur.end);
+        s = Math.max(min, Math.min(s, max - TRB_MIN_GAP));
+        e = Math.min(max, Math.max(e, s + TRB_MIN_GAP));
+        onChange(s, e);
+      }
+      dragRef.current = null;
+      liveRef.current = null;
+      setLive(null);
+      setDrag(null);
+    };
+    window.addEventListener("pointermove", onMove, { passive: false });
     window.addEventListener("pointerup", onUp, true);
     window.addEventListener("pointercancel", onUp, true);
     return () => {
@@ -192,91 +219,96 @@ export function TimeRangeBar({
       window.removeEventListener("pointerup", onUp, true);
       window.removeEventListener("pointercancel", onUp, true);
     };
-  }, [drag, endLocked, min, max, onStartChange, onEndChange, toSnappedFromClientX]);
+  }, [drag, moveTo, onChange, min, max]);
 
-  const pct0 = minutesToBarPercent(startMin, min, max);
-  const pct1 = minutesToBarPercent(endMin, min, max);
+  // Handles jump between 30-minute increments: position everything from the
+  // snapped values so the thumbs and fill land only on :00 or :30 marks.
+  const dispStart = snapToStep(start);
+  const dispEnd = snapToStep(end);
+  const pct0 = minutesToBarPercent(dispStart, min, max);
+  const pct1 = minutesToBarPercent(dispEnd, min, max);
   const w = Math.max(0, pct1 - pct0);
+    // Keep the 16px thumbs fully inside the track: their centers travel within an
+    // 8px inset on each end, and the fill shares the same mapping so it stays aligned.
+    const insetPos = (pct: number) => `calc((100% - 16px) * ${pct / 100} + 8px)`;
 
   return (
     <div className="time-range-dual">
       <div
         className="dual-range"
         ref={trackRef}
-        onPointerDown={onBarPointerDown}
+        onPointerDown={onTrackPointerDown}
         style={{ touchAction: "none" }}
         role="group"
         aria-label="Free time window"
       >
         <div className="dual-range-bg" />
-        <div
-          className="dual-range-fill"
-          style={{ left: `${pct0}%`, width: `${w}%` }}
-        />
+        <div className="dual-range-fill" style={{ left: insetPos(pct0), width: `calc((100% - 16px) * ${w / 100})` }} />
         <button
           type="button"
-          className="dual-range-thumb dual-range-thumb--start"
-          style={{ left: `${pct0}%` }}
-          aria-label="Window starts at"
-          aria-valuemin={min}
-          aria-valuemax={endLocked ? max - LOCKED_WINDOW_MINUTES : endMin - LOCKED_WINDOW_MINUTES}
-          aria-valuenow={startMin}
+          className={`dual-range-thumb dual-range-thumb--start${drag === "start" ? " is-dragging" : ""}`}
+          style={{ left: insetPos(pct0) }}
           role="slider"
+          aria-label="Window start"
+          aria-valuemin={min}
+          aria-valuemax={endMin - TRB_MIN_GAP}
+          aria-valuenow={startMin}
+          aria-valuetext={formatLabel(startMin)}
           onKeyDown={(e) => {
             if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
               e.preventDefault();
-              onStartChange(Math.max(min, startMin - 30));
+              onChange(Math.max(min, startMin - TRB_SNAP), endMin);
             }
             if (e.key === "ArrowRight" || e.key === "ArrowUp") {
               e.preventDefault();
-              onStartChange(
-                endLocked
-                  ? Math.min(startMin + 30, max - LOCKED_WINDOW_MINUTES)
-                  : Math.min(startMin + 30, endMin - LOCKED_WINDOW_MINUTES)
-              );
+              onChange(Math.min(startMin + TRB_SNAP, endMin - TRB_MIN_GAP), endMin);
             }
           }}
           onPointerDown={(e) => {
             e.stopPropagation();
             (e.currentTarget as HTMLButtonElement).focus();
-            setDrag("start");
+            beginDrag("start", e.clientX);
           }}
-        />
+        >
+          {drag === "start" && <span className="dual-range-bubble">{formatLabel(dispStart)}</span>}
+        </button>
         <button
           type="button"
-          className={`dual-range-thumb dual-range-thumb--end${endLocked ? " dual-range-thumb--end-locked" : ""}`}
-          style={{ left: `${pct1}%` }}
-          aria-label="Window ends at"
-          title={
-            endLocked
-              ? "Drag past 1 hour to plan a longer window"
-              : "Window end"
-          }
-          aria-valuemin={startMin + LOCKED_WINDOW_MINUTES}
+          className={`dual-range-thumb dual-range-thumb--end${drag === "end" ? " is-dragging" : ""}`}
+          style={{ left: insetPos(pct1) }}
+          role="slider"
+          aria-label="Window end"
+          aria-valuemin={startMin + TRB_MIN_GAP}
           aria-valuemax={max}
           aria-valuenow={endMin}
-          role="slider"
+          aria-valuetext={formatLabel(endMin)}
           onKeyDown={(e) => {
             if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
               e.preventDefault();
-              onEndChange(Math.max(endMin - 30, startMin + LOCKED_WINDOW_MINUTES));
+              onChange(startMin, Math.max(endMin - TRB_SNAP, startMin + TRB_MIN_GAP));
             }
             if (e.key === "ArrowRight" || e.key === "ArrowUp") {
               e.preventDefault();
-              onEndChange(Math.min(max, endMin + 30));
+              onChange(startMin, Math.min(max, endMin + TRB_SNAP));
             }
           }}
           onPointerDown={(e) => {
             e.stopPropagation();
             (e.currentTarget as HTMLButtonElement).focus();
-            setDrag("end");
+            beginDrag("end", e.clientX);
           }}
-        />
+        >
+          {drag === "end" && <span className="dual-range-bubble">{formatLabel(dispEnd)}</span>}
+        </button>
       </div>
-      <p className="time-range-readout-line" aria-hidden>
-        <span className="time-range-time">{formatLabel(startMin)}</span>
-        <span className="time-range-sep">-</span>
-        <span className="time-range-time">{formatLabel(endMin)}</span>
+      <p
+        className="time-range-readout-line"
+        aria-hidden
+        style={{ left: `${Math.min(88, Math.max(12, (pct0 + pct1) / 2))}%` }}
+      >
+        <span className="time-range-time">{formatLabel(dispStart)}</span>
+        <span className="time-range-sep">–</span>
+        <span className="time-range-time">{formatLabel(dispEnd)}</span>
       </p>
     </div>
   );

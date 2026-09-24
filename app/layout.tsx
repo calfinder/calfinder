@@ -1,27 +1,25 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import { Instrument_Serif, DM_Sans, DM_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+
+const geistSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+  display: "swap"
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap"
+});
 
 const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
-  weight: ["400"],
+  weight: "400",
   style: ["normal", "italic"],
-  variable: "--font-instrument",
-  display: "swap"
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  variable: "--font-dm-sans",
-  display: "swap"
-});
-
-const dmMono = DM_Mono({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-dm-mono",
+  variable: "--font-instrument-serif",
   display: "swap"
 });
 
@@ -33,7 +31,7 @@ export const metadata: Metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#002855"
+  themeColor: "#ffffff"
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -41,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${instrumentSerif.variable} ${dmSans.variable} ${dmMono.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} bg-app`}
     >
       <body>{children}</body>
     </html>
