@@ -300,7 +300,11 @@ export function TimeRangeBar({
           {drag === "end" && <span className="dual-range-bubble">{formatLabel(dispEnd)}</span>}
         </button>
       </div>
-      <p className="time-range-readout-line" aria-hidden>
+      <p
+        className="time-range-readout-line"
+        aria-hidden
+        style={{ left: `${Math.min(88, Math.max(12, (pct0 + pct1) / 2))}%` }}
+      >
         <span className="time-range-time">{formatLabel(dispStart)}</span>
         <span className="time-range-sep">–</span>
         <span className="time-range-time">{formatLabel(dispEnd)}</span>
