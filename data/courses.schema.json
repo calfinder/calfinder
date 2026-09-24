@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://calfinder.berkeley/schemas/courses.schema.json",
+  "title": "CalFinder Course List",
+  "description": "Schema for the CalFinder courses JSON array.",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "title",
+      "code",
+      "department",
+      "instructor",
+      "building",
+      "room",
+      "lat",
+      "lng",
+      "walkingMinutes",
+      "startTime",
+      "endTime",
+      "meetDays",
+      "interests",
+      "description"
+    ],
+    "properties": {
+      "id": {
+        "description": "Unique course identifier.",
+        "oneOf": [
+          { "type": "integer", "minimum": 1 },
+          { "type": "string", "pattern": "^[1-9][0-9]*$" }
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1
+      },
+      "code": {
+        "description": "Catalog code, e.g. CS 61B.",
+        "type": "string",
+        "minLength": 2
+      },
+      "department": {
+        "type": "string",
+        "minLength": 1
+      },
+      "instructor": {
+        "type": "string",
+        "minLength": 1
+      },
+      "building": {
+        "type": "string",
+        "minLength": 1
+      },
+      "room": {
+        "type": "string",
+        "minLength": 1
+      },
+      "lat": {
+        "type": "number",
+        "minimum": -90,
+        "maximum": 90
+      },
+      "lng": {
+        "type": "number",
+        "minimum": -180,
+        "maximum": 180
+      },
+      "walkingMinutes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 180
+      },
+      "startTime": {
+        "description": "24-hour time format HH:MM.",
+        "type": "string",
+        "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+      },
+      "endTime": {
+        "description": "24-hour time format HH:MM.",
+        "type": "string",
+        "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+      },
+      "meetDays": {
+        "description": "Compact day codes using M, T, W, Tr, F (examples: MW, TTr, MWF).",
+        "type": "string",
+        "pattern": "^(M|T|W|Tr|F)+$"
+      },
+      "interests": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "enum": [
+            "Science & Nature",
+            "Tech & Engineering",
+            "Math & Data",
+            "Arts & Design",
+            "History & Culture",
+            "Society & Politics",
+            "Business & Economics",
+            "Health & Environment"
+          ]
+        }
+      },
+      "description": {
+        "type": "string",
+        "minLength": 1
+      },
+      "semester": {
+        "type": "string",
+        "enum": ["Fall 2026"]
+      },
+      "enrolledCount": { "type": ["integer", "null"] },
+      "enrolledMax": { "type": ["integer", "null"] },
+      "waitlistedCount": { "type": ["integer", "null"] },
+      "enrollmentStatus": { "type": ["string", "null"] }
+    }
+  }
+}

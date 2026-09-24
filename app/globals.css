@@ -1,0 +1,26 @@
+/* ─── Design tokens ─── */
+:root {
+  --navy: #002855;
+  --navy-light: #0a3d6b;
+  --gold: #fdb515;
+  --gold-dim: #c98e00;
+  --cream: #f8f5ef;
+  --cream-dark: #ede8de;
+  --text: #1a1612;
+  --muted: #6b6356;
+  --border: rgba(0, 40, 85, 0.14);
+  --chip-bg: #fff;
+  --font-display: var(--font-instrument), Georgia, serif;
+  --font-body: var(--font-dm-sans), system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), monospace;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; scrollbar-gutter: stable; }
+body { background-color: var(--cream); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
+input[type="time"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
