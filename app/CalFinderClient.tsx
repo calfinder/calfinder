@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { Course, Interest, Semester } from "../lib/types";
 import { DEFAULT_SEMESTER } from "../lib/types";
@@ -39,6 +39,9 @@ import type { PreparedCourse, TopTab, WeekdayToken } from "./calfinder/types";
 // Editor tools (stats + database download) are for local development only.
 const SHOW_EDITOR = process.env.NODE_ENV === "development";
 
+// Minimum size of the free-time window, in minutes.
+const FREE_RANGE_MIN_GAP = 30;
+
 export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }) {
   const preparedCourses = useMemo(
     () =>
@@ -72,12 +75,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
   const [freeRangeEndMinutes, setFreeRangeEndMinutes] = useState(
     EARLIEST_MINUTES + LOCKED_WINDOW_MINUTES
   );
-  const [freeRangeUnlocked, setFreeRangeUnlocked] = useState(false);
   const [usingNow, setUsingNow] = useState(true);
-  const freeRangeUnlockedRef = useRef(freeRangeUnlocked);
-  const freeRangeStartRef = useRef(freeRangeStartMinutes);
-  freeRangeUnlockedRef.current = freeRangeUnlocked;
-  freeRangeStartRef.current = freeRangeStartMinutes;
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>([]);
   const [selectedArea, setSelectedArea] = useState<string | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
@@ -101,7 +99,6 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
     const weekday = getDefaultWeekdayToken();
     const startM = Math.min(getDefaultMinutes(), LATEST_MINUTES - LOCKED_WINDOW_MINUTES);
     setSelectedWeekday(weekday);
-    setFreeRangeUnlocked(false);
     setFreeRangeStartMinutes(startM);
     setFreeRangeEndMinutes(Math.min(LATEST_MINUTES, startM + LOCKED_WINDOW_MINUTES));
     setUsingNow(shouldUseNow(weekday, startM));
@@ -138,41 +135,18 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
 
   const freeRangeValid = freeRangeStartMinutes < freeRangeEndMinutes;
 
-  const applyFreeRangeStart = useCallback(
-    (snapped: number) => {
-      if (!freeRangeUnlockedRef.current) {
-        const s = Math.max(
-          EARLIEST_MINUTES,
-          Math.min(snapped, LATEST_MINUTES - LOCKED_WINDOW_MINUTES)
-        );
-        const e = Math.min(LATEST_MINUTES, s + LOCKED_WINDOW_MINUTES);
-        setFreeRangeStartMinutes(s);
-        setFreeRangeEndMinutes(e);
-        setUsingNow(shouldUseNow(selectedWeekday, s));
-        return;
-      }
-      setFreeRangeStartMinutes(snapped);
-      setFreeRangeEndMinutes((end) =>
-        end <= snapped ? Math.min(LATEST_MINUTES, snapped + LOCKED_WINDOW_MINUTES) : end
-      );
-      setUsingNow(shouldUseNow(selectedWeekday, snapped));
+  const applyFreeRange = useCallback(
+    (nextStart: number, nextEnd: number) => {
+      let s = Math.round(nextStart);
+      let e = Math.round(nextEnd);
+      s = Math.max(EARLIEST_MINUTES, Math.min(s, LATEST_MINUTES - FREE_RANGE_MIN_GAP));
+      e = Math.min(LATEST_MINUTES, Math.max(e, s + FREE_RANGE_MIN_GAP));
+      setFreeRangeStartMinutes(s);
+      setFreeRangeEndMinutes(e);
+      setUsingNow(shouldUseNow(selectedWeekday, s));
     },
     [selectedWeekday]
   );
-
-  const applyFreeRangeEnd = useCallback((snapped: number) => {
-    if (!freeRangeUnlockedRef.current) {
-      if (snapped <= freeRangeStartRef.current + LOCKED_WINDOW_MINUTES) {
-        return;
-      }
-      setFreeRangeUnlocked(true);
-    }
-    setFreeRangeEndMinutes(snapped);
-    setFreeRangeStartMinutes((start) =>
-      snapped <= start ? Math.max(EARLIEST_MINUTES, snapped - LOCKED_WINDOW_MINUTES) : start
-    );
-    setUsingNow(false);
-  }, []);
 
   const filteredCourses = useMemo(() => {
     if (!freeRangeValid) return [];
@@ -267,7 +241,6 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
 
     const weekday = getDefaultWeekdayToken();
     setSelectedWeekday(weekday);
-    setFreeRangeUnlocked(false);
     startM = Math.min(startM, LATEST_MINUTES - LOCKED_WINDOW_MINUTES);
     const endM = Math.min(LATEST_MINUTES, startM + LOCKED_WINDOW_MINUTES);
     setFreeRangeStartMinutes(startM);
@@ -361,21 +334,21 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
   return (
     <>
       <style jsx global>{`
-        :root { --navy:#002855; --navy-light:#0a3d6b; --gold:#fdb515; --gold-dim:#c98e00; --cream:#f8f5ef; --cream-dark:#ede8de; --text:#1a1612; --muted:#6b6356; --border:rgba(0,40,85,0.14); --chip-bg:#fff; --surface:#fff; --font-display:var(--font-instrument),Georgia,serif; --font-body:var(--font-dm-sans),system-ui,sans-serif; --font-mono:var(--font-dm-mono),monospace; --radius-sm:6px; --radius-md:12px; --radius-pill:999px;}
+        :root { --navy:#003262; --navy-light:#0a4a86; --gold:#fdb515; --gold-dim:#b07d00; --bg:#f2f4f8; --cream:#f2f4f8; --cream-dark:#e7ebf1; --text:#0f1b2d; --muted:#5b6472; --border:rgba(0,50,98,0.10); --chip-bg:#fff; --surface:#fff; --font-display:var(--font-geist-sans),system-ui,sans-serif; --font-body:var(--font-geist-sans),system-ui,sans-serif; --font-mono:var(--font-geist-mono),ui-monospace,monospace; --radius-sm:10px; --radius-md:16px; --radius-lg:20px; --radius-pill:999px; --shadow-sm:0 1px 3px rgba(15,27,45,.06); --shadow-md:0 6px 20px rgba(15,27,45,.08),0 2px 6px rgba(15,27,45,.05); --shadow-lg:0 16px 40px rgba(15,27,45,.12),0 4px 12px rgba(15,27,45,.06);}
 
-        .redesign-root,.redesign-root *{box-sizing:border-box}.redesign-root{min-height:100vh;display:flex;flex-direction:column;background:var(--cream);color:var(--text);font-family:var(--font-body)}
+        .redesign-root,.redesign-root *{box-sizing:border-box}.redesign-root{min-height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:var(--font-body)}
         body,body *{transition:background-color 300ms ease,color 300ms ease,border-color 300ms ease,box-shadow 300ms ease;}
-        .redesign-root nav{display:flex;align-items:center;justify-content:space-between;padding:1.125rem 2.5rem;border-bottom:1px solid var(--border);background:var(--cream);position:sticky;top:0;z-index:10}
+        .redesign-root nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.55rem .7rem .55rem 1.25rem;border:1px solid rgba(255,255,255,.65);background:rgba(255,255,255,.72);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);border-radius:var(--radius-pill);box-shadow:var(--shadow-md);position:sticky;top:1rem;z-index:30;max-width:1200px;width:calc(100% - 2rem);margin:1rem auto 0}
         .logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}.logo-mark{width:32px;height:32px;background:var(--navy);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center}.logo-wordmark{font-weight:500;font-size:1rem;color:var(--navy);letter-spacing:-.01em}
         .header-right{display:flex;align-items:center;gap:.75rem}
-        .top-tabs{display:flex;align-items:center;gap:2px;border:1px solid var(--border);border-radius:var(--radius-pill);background:rgba(0,40,85,.03);padding:3px}
-        .top-tab-btn{font-family:var(--font-body);font-size:.78rem;letter-spacing:0;color:var(--muted);background:transparent;border:none;border-radius:var(--radius-pill);padding:.3rem .75rem;cursor:pointer}
+        .top-tabs{display:flex;align-items:center;gap:2px;border:1px solid var(--border);border-radius:var(--radius-pill);background:rgba(0,50,98,.04);padding:3px}
+        .top-tab-btn{font-family:var(--font-body);font-size:.8rem;letter-spacing:0;color:var(--muted);background:transparent;border:none;border-radius:var(--radius-pill);padding:.45rem .95rem;cursor:pointer;transition:color 140ms ease,background-color 140ms ease}
         .top-tab-btn:hover{color:var(--text)}
-        .top-tab-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,40,85,.1)}
+        .top-tab-btn.active{background:#fff;color:var(--navy);font-weight:500;box-shadow:var(--shadow-sm)}
         .semester-toggle{display:flex;align-items:center;border-radius:var(--radius-pill);background:#fff;border:1px solid var(--border);padding:3px}
-        .semester-badge{font-family:var(--font-body);font-size:.78rem;letter-spacing:0;color:var(--text);border-radius:var(--radius-pill);padding:.3rem .75rem;box-shadow:0 1px 3px rgba(0,40,85,.1);cursor:default;user-select:none}
-        .redesign-main{flex:1;max-width:1400px;width:100%;margin:0 auto;padding:0.5rem 2rem 6rem;overflow-x:hidden}
-        .hero-title,.subheadline,.description,.form-section{max-width:960px}
+        .semester-badge{font-family:var(--font-body);font-size:.78rem;letter-spacing:0;color:var(--navy);font-weight:500;border-radius:var(--radius-pill);padding:.4rem .8rem;box-shadow:var(--shadow-sm);cursor:default;user-select:none}
+        .redesign-main{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:2.5rem 1.25rem 6rem;overflow-x:hidden}
+        .hero-title,.subheadline,.description,.form-section{max-width:960px}.hero-title,.subheadline,.description,.form-section,.cta-wrapper{animation:float-in 520ms cubic-bezier(.16,1,.3,1) both}.subheadline{animation-delay:60ms}.description{animation-delay:110ms}.cta-wrapper{animation-delay:160ms}@keyframes float-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
         .eyebrow{font-family:var(--font-body);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:1.5rem}
         .hero-title{font-family:var(--font-display);font-size:clamp(2.6rem,6vw,3.75rem);font-weight:300;line-height:1.08;color:var(--navy);letter-spacing:-.02em;margin-bottom:.75rem}.subheadline{font-family:var(--font-display);font-size:clamp(1.3rem,3vw,1.6rem);font-weight:300;font-style:italic;color:var(--gold-dim);margin-bottom:1.75rem}.description{font-size:1rem;line-height:1.75;color:var(--muted);max-width:520px;margin-bottom:3.5rem}
         .divider{height:1px;background:var(--border);margin:3rem 0}.form-section{margin-bottom:2.5rem}.section-label{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}.step-number{font-family:var(--font-body);font-size:.65rem;color:var(--gold-dim);background:rgba(253,181,21,.12);border:1px solid rgba(253,181,21,.3);border-radius:var(--radius-pill);padding:.2rem .6rem;letter-spacing:.04em}.section-title{font-family:var(--font-display);font-size:1.6rem;font-weight:300;letter-spacing:-.01em;text-transform:none;color:var(--navy)}
@@ -383,25 +356,25 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
         .time-range-block{display:flex;align-items:flex-start;gap:.85rem;width:100%;min-width:0;flex:1}
         .time-range-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:.35rem}
         .label-opt{opacity:0.45;font-size:.85em}
-        .chip.active,.time-btn.active,.day-btn.active{box-shadow:0 0 14px rgba(253,181,21,.18)}
-        .dual-range-thumb--end-locked{box-shadow:0 0 0 1px rgba(42,143,92,.4)}
+        .chip.active,.time-btn.active,.day-btn.active{box-shadow:0 0 0 3px rgba(253,181,21,.2)}.chip,.day-btn,.time-btn{transition:transform 140ms ease,border-color 140ms ease,background-color 140ms ease,color 140ms ease,box-shadow 140ms ease}.chip:hover:not(.active),.day-btn:hover:not(.active),.time-btn:hover:not(.active){transform:translateY(-1px);border-color:rgba(0,50,98,.28);box-shadow:var(--shadow-sm)}
+        .dual-range-thumb.is-dragging{cursor:grabbing;box-shadow:0 0 0 6px rgba(253,181,21,.3),var(--shadow-lg)}.dual-range-bubble{position:absolute;bottom:calc(50% + 20px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.02em;padding:.25rem .55rem;border-radius:var(--radius-sm);white-space:nowrap;pointer-events:none;box-shadow:var(--shadow-md);z-index:6}.dual-range-bubble::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--navy)}
         .time-range-dual{flex:1;min-width:0;display:flex;flex-direction:column;gap:.45rem}
         .dual-range{position:relative;height:56px;width:100%;align-self:stretch;cursor:pointer}
-        .dual-range-bg{position:absolute;left:0;right:0;top:50%;height:10px;margin-top:-5px;border-radius:999px;background:rgba(0,40,85,.12);pointer-events:none}
-        .dual-range-fill{position:absolute;top:50%;height:10px;margin-top:-5px;border-radius:999px;background:#2a8f5c;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.12);cursor:grab;z-index:1}
-        .dual-range-thumb{position:absolute;top:50%;z-index:2;width:18px;height:18px;border-radius:50%;background:var(--navy);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.28);transform:translate(-50%,-50%);cursor:grab;padding:0}
+        .dual-range-bg{position:absolute;left:0;right:0;top:50%;height:8px;margin-top:-4px;border-radius:999px;background:rgba(0,50,98,.10);pointer-events:none}
+        .dual-range-fill{position:absolute;top:50%;height:8px;margin-top:-4px;border-radius:999px;background:var(--navy);min-width:0;cursor:grab;z-index:1}
+        .dual-range-thumb{position:absolute;top:50%;z-index:2;width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid var(--navy);box-shadow:var(--shadow-md);transform:translate(-50%,-50%);cursor:grab;padding:0;transition:box-shadow 140ms ease}
         .dual-range-thumb--end{z-index:3}
-        .dual-range-thumb:hover,.dual-range-thumb:focus-visible{z-index:4;outline:2px solid rgba(0,40,85,.2);outline-offset:2px}
+        .dual-range-thumb:hover,.dual-range-thumb:focus-visible{z-index:4;outline:none;box-shadow:0 0 0 6px rgba(253,181,21,.25),var(--shadow-md)}
         .dual-range-thumb:active{cursor:grabbing}
-        .time-range-readout-line{margin:0;font-family:var(--font-mono);font-size:.85rem;letter-spacing:.04em;color:var(--navy);background:rgba(0,40,85,.06);border:1px solid rgba(0,40,85,.14);border-radius:var(--radius-pill);padding:.3rem .85rem;white-space:nowrap;width:fit-content;align-self:center}
+        .time-range-readout-line{margin:0;font-family:var(--font-mono);font-size:.85rem;letter-spacing:.02em;color:var(--navy);background:rgba(0,50,98,.05);border:1px solid var(--border);border-radius:var(--radius-pill);padding:.35rem .9rem;white-space:nowrap;width:fit-content;align-self:center}
         .time-range-sep{opacity:0.45;padding:0 .35rem}
         .day-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:.45rem}.day-btn{font-family:var(--font-body);font-size:.9rem;border:1px solid var(--border);background:var(--chip-bg);color:var(--text);padding:.55rem 1rem;border-radius:var(--radius-pill);cursor:pointer}.day-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
         .time-row{display:flex;align-items:center;gap:.8rem}.time-btn,.chip{font-family:var(--font-body);font-size:.9rem;border:1px solid var(--border);background:var(--chip-bg);color:var(--text);padding:.55rem 1rem;border-radius:var(--radius-pill);cursor:pointer}.time-btn.active,.chip.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
         .time-slider-wrap{flex:1;display:flex;align-items:center;gap:.75rem;min-width:220px}.time-slider{flex:1;appearance:none;height:6px;border-radius:999px;background:rgba(0,40,85,.15);outline:none}.time-slider::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:var(--navy);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer}.time-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--navy);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer}
         .time-readout{font-family:var(--font-mono);font-size:.78rem;color:var(--muted);min-width:72px;text-align:right}
-        .chips{display:flex;flex-wrap:wrap;gap:.5rem}.building-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem;animation:chips-in 180ms ease both}@keyframes chips-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}.chip--sm{font-size:.78rem;padding:.35rem .75rem}.cta-wrapper{margin-top:3rem}.cta-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:.75rem;background:var(--navy);color:var(--gold);border:none;border-radius:var(--radius-md);padding:1.05rem 2rem;font-family:var(--font-body);font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}.cta-btn:disabled{opacity:.6;cursor:not-allowed}
+        .chips{display:flex;flex-wrap:wrap;gap:.5rem}.building-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem;animation:chips-in 180ms ease both}@keyframes chips-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}.chip--sm{font-size:.78rem;padding:.35rem .75rem}.cta-wrapper{margin-top:3rem}.cta-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:.75rem;background:var(--navy);color:var(--gold);border:none;border-radius:var(--radius-md);padding:1.05rem 2rem;font-family:var(--font-body);font-size:.82rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:var(--shadow-md);transition:transform 160ms ease,box-shadow 160ms ease}.cta-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:var(--shadow-lg)}.cta-btn:disabled{opacity:.6;cursor:not-allowed}
         .prominent-message{text-align:center;font-family:var(--font-display);font-size:clamp(1.35rem,3.6vw,1.9rem);line-height:1.28;color:var(--navy);letter-spacing:-.01em}.prominent-message--form{margin-top:3rem}.prominent-message--result{margin-top:1.25rem}.result-section{margin-top:3rem;animation:results-fade-in 280ms ease both}@keyframes results-fade-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.result-label{font-family:var(--font-body);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
-        .course-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}.card-body{padding:1.5rem 1.75rem}.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem}.card-college{font-family:var(--font-display);font-size:1.2rem;line-height:1.25;color:var(--navy);margin:0 0 .3rem}.card-dept{font-family:var(--font-body);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+        .course-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md)}.card-body{padding:1.5rem 1.75rem}.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem}.card-college{font-family:var(--font-display);font-size:1.2rem;line-height:1.25;color:var(--navy);margin:0 0 .3rem}.card-dept{font-family:var(--font-body);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
         .card-time-badge{font-family:var(--font-mono);font-size:.7rem;color:var(--gold-dim);background:rgba(253,181,21,.12);border:1px solid rgba(253,181,21,.3);border-radius:var(--radius-pill);padding:.25rem .7rem;white-space:nowrap}.card-title{font-family:var(--font-display);font-size:clamp(1.3rem,3vw,1.65rem);font-weight:300;line-height:1.2;color:var(--navy);margin-bottom:.4rem}
         .card-meta,.card-desc{color:var(--muted);font-size:.86rem;line-height:1.65;margin-bottom:1rem}.card-instructor-link{color:var(--navy);text-decoration:none;font-weight:500;border-bottom:1px solid rgba(0,40,85,.25)}.card-instructor-link:hover{border-bottom-color:var(--navy)}.card-divider{height:1px;background:var(--border);margin:1.25rem 0}.card-location{margin-bottom:1.25rem}.card-location a{color:var(--navy);text-decoration:none;font-weight:500;border-bottom:1px solid rgba(0,40,85,.25)}.card-location a:hover{border-bottom-color:var(--navy)}
         .rt-classsize{font-family:var(--font-mono);font-size:.75rem;color:var(--text);white-space:nowrap}
@@ -410,7 +383,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
         .save-btn{background:none;border:none;cursor:pointer;padding:.25rem .4rem;line-height:1;color:var(--muted);opacity:.4;transition:opacity 120ms,color 120ms;vertical-align:middle}.save-btn:hover{opacity:1;color:var(--gold-dim)}.save-btn.is-saved{color:var(--gold-dim);opacity:1}
         .saved-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--gold);color:var(--navy);border-radius:var(--radius-pill);font-size:.55rem;font-weight:700;min-width:14px;height:14px;padding:0 3px;margin-left:4px;line-height:1}
         .saved-empty{text-align:center;padding:4rem 2rem;color:var(--muted);font-family:var(--font-display);font-size:1.1rem;font-weight:300;font-style:italic}
-        .results-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-md)}
+        .results-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);background:var(--surface)}
         .results-table{width:100%;border-collapse:collapse;background:#fff}
         .results-table thead tr{background:var(--navy)}
         .results-table thead th{font-family:var(--font-body);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);padding:.75rem 1rem;text-align:left;font-weight:500;white-space:nowrap}
@@ -500,7 +473,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
 
         @media(max-width:640px){
           /* ── Nav ── */
-          .redesign-root nav{padding:.875rem 1.25rem;gap:.5rem}
+          .redesign-root nav{padding:.5rem .55rem .5rem 1rem;gap:.5rem;top:.6rem;width:calc(100% - 1.5rem);margin:.6rem auto 0}
           .header-right{gap:.4rem}
           .semester-toggle{display:none}
           .top-tabs{display:none}
@@ -605,7 +578,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
         }
       `}</style>
       <div className="redesign-root">
-        <nav style={{ position: "relative" }}>
+        <nav>
           <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
             <a className="logo" href="#">
               <div className="logo-mark">
@@ -668,9 +641,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
               usingNow={usingNow}
               setUsingNow={setUsingNow}
               handleNow={handleNow}
-              applyFreeRangeStart={applyFreeRangeStart}
-              applyFreeRangeEnd={applyFreeRangeEnd}
-              freeRangeUnlocked={freeRangeUnlocked}
+              applyFreeRange={applyFreeRange}
               freeRangeValid={freeRangeValid}
               handleFindClass={handleFindClass}
               hasSearched={hasSearched}

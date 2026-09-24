@@ -1,26 +1,44 @@
 /* ─── Design tokens ─── */
 :root {
-  --navy: #002855;
-  --navy-light: #0a3d6b;
+  --navy: #003262;
+  --navy-light: #0a4a86;
   --gold: #fdb515;
-  --gold-dim: #c98e00;
-  --cream: #f8f5ef;
-  --cream-dark: #ede8de;
-  --text: #1a1612;
-  --muted: #6b6356;
-  --border: rgba(0, 40, 85, 0.14);
-  --chip-bg: #fff;
-  --font-display: var(--font-instrument), Georgia, serif;
-  --font-body: var(--font-dm-sans), system-ui, sans-serif;
-  --font-mono: var(--font-dm-mono), monospace;
-  --radius-sm: 6px;
-  --radius-md: 12px;
+  --gold-dim: #b07d00;
+  /* Cool-gray page background + crisp white surfaces (no beige) */
+  --bg: #f2f4f8;
+  --surface: #ffffff;
+  /* Legacy aliases kept so shared components stay in sync */
+  --cream: #f2f4f8;
+  --cream-dark: #e7ebf1;
+  --text: #0f1b2d;
+  --muted: #5b6472;
+  --border: rgba(0, 50, 98, 0.1);
+  --chip-bg: #ffffff;
+  --font-display: var(--font-geist-sans), system-ui, sans-serif;
+  --font-body: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
   --radius-pill: 999px;
+  --shadow-sm: 0 1px 3px rgba(15, 27, 45, 0.06);
+  --shadow-md: 0 6px 20px rgba(15, 27, 45, 0.08), 0 2px 6px rgba(15, 27, 45, 0.05);
+  --shadow-lg: 0 16px 40px rgba(15, 27, 45, 0.12), 0 4px 12px rgba(15, 27, 45, 0.06);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; scrollbar-gutter: stable; }
-body { background-color: var(--cream); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+html.bg-app, html { background-color: var(--bg); }
+body { background-color: var(--bg); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
 input[type="time"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

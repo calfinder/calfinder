@@ -33,9 +33,7 @@ export function DiscoverTab({
   usingNow,
   setUsingNow,
   handleNow,
-  applyFreeRangeStart,
-  applyFreeRangeEnd,
-  freeRangeUnlocked,
+  applyFreeRange,
   freeRangeValid,
   handleFindClass,
   hasSearched,
@@ -68,9 +66,7 @@ export function DiscoverTab({
   usingNow: boolean;
   setUsingNow: (v: boolean) => void;
   handleNow: () => void;
-  applyFreeRangeStart: (snapped: number) => void;
-  applyFreeRangeEnd: (snapped: number) => void;
-  freeRangeUnlocked: boolean;
+  applyFreeRange: (nextStart: number, nextEnd: number) => void;
   freeRangeValid: boolean;
   handleFindClass: () => void;
   hasSearched: boolean;
@@ -124,12 +120,10 @@ export function DiscoverTab({
               <TimeRangeBar
                 startMin={freeRangeStartMinutes}
                 endMin={freeRangeEndMinutes}
-                onStartChange={applyFreeRangeStart}
-                onEndChange={applyFreeRangeEnd}
+                onChange={applyFreeRange}
                 min={EARLIEST_MINUTES}
                 max={LATEST_MINUTES}
                 formatLabel={formatMinutes12h}
-                endLocked={!freeRangeUnlocked}
               />
             </div>
           </div>
