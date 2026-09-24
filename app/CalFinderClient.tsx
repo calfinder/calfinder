@@ -36,6 +36,9 @@ import { SavedTab } from "./calfinder/SavedTab";
 import { SearchTab } from "./calfinder/SearchTab";
 import type { PreparedCourse, TopTab, WeekdayToken } from "./calfinder/types";
 
+// Editor tools (stats + database download) are for local development only.
+const SHOW_EDITOR = process.env.NODE_ENV === "development";
+
 export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }) {
   const preparedCourses = useMemo(
     () =>
@@ -619,7 +622,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
               <button className={`top-tab-btn ${topTab === "search" ? "active" : ""}`} onClick={() => setTopTab("search")} type="button">Search</button>
               <button className={`top-tab-btn ${topTab === "saved" ? "active" : ""}`} onClick={() => setTopTab("saved")} type="button">Saved{savedIds.size > 0 && <span className="saved-badge">{savedIds.size}</span>}</button>
               <button className={`top-tab-btn ${topTab === "categories" ? "active" : ""}`} onClick={() => setTopTab("categories")} type="button">Categories</button>
-              <button className={`top-tab-btn ${topTab === "editor" ? "active" : ""}`} onClick={() => setTopTab("editor")} type="button">Editor</button>
+              {SHOW_EDITOR && <button className={`top-tab-btn ${topTab === "editor" ? "active" : ""}`} onClick={() => setTopTab("editor")} type="button">Editor</button>}
             </div>
             <div className="semester-toggle">
               <span className="semester-badge">Fall 2026</span>
@@ -643,7 +646,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
                 Saved{savedIds.size > 0 && <span className="saved-badge" style={{ marginLeft: ".5rem" }}>{savedIds.size}</span>}
               </button>
               <button className={`mobile-nav-btn${topTab === "categories" ? " active" : ""}`} type="button" onClick={() => { setTopTab("categories"); setMenuOpen(false); }}>Categories</button>
-              <button className={`mobile-nav-btn${topTab === "editor" ? " active" : ""}`} type="button" onClick={() => { setTopTab("editor"); setMenuOpen(false); }}>Editor</button>
+              {SHOW_EDITOR && <button className={`mobile-nav-btn${topTab === "editor" ? " active" : ""}`} type="button" onClick={() => { setTopTab("editor"); setMenuOpen(false); }}>Editor</button>}
             </div>
           </div>
         </nav>
@@ -709,7 +712,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
             />
           ) : topTab === "categories" ? (
             <CategoriesTab />
-          ) : (
+          ) : SHOW_EDITOR ? (
             <EditorTab
               allCourses={allCourses}
               uniqueCourseCount={uniqueCourseCount}
@@ -721,7 +724,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
               undersizedCourses={undersizedCourses}
               onDownloadDatabase={handleDownloadDatabase}
             />
-          )}
+          ) : null}
         </main>
         <footer>
           <a className="logo" href="#">
