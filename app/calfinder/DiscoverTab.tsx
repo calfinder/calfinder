@@ -109,7 +109,6 @@ export function DiscoverTab({
         <div className="divider" />
         <div className="form-section when-section">
           <div className="section-label when-section-label">
-            <span className="step-number">01</span>
             <div className="when-free-row">
               <span className="section-title">When are you free?</span>
               <button className={`day-btn when-now-btn ${usingNow ? "active" : ""}`} type="button" onClick={handleNow}>Now</button>
@@ -144,7 +143,7 @@ export function DiscoverTab({
           </div>
         </div>
         <div className="form-section">
-          <div className="section-label"><span className="step-number">02</span><span className="section-title">What are you into? <span className="label-opt">(optional)</span></span></div>
+          <div className="section-label"><span className="section-title">What are you into? <span className="label-opt">(optional)</span></span></div>
           <div className="chips">
             {INTEREST_OPTIONS.map((interest) => (
               <button key={interest} type="button" className={`chip ${selectedInterests.includes(interest) ? "active" : ""}`} onClick={() => toggleInterest(interest)}>{interest}</button>
@@ -152,7 +151,7 @@ export function DiscoverTab({
           </div>
         </div>
         <div className="form-section">
-          <div className="section-label"><span className="step-number">03</span><span className="section-title">Where are you? <span className="label-opt">(optional)</span></span></div>
+          <div className="section-label"><span className="section-title">Where are you? <span className="label-opt">(optional)</span></span></div>
           <div className="chips">
             {["Southside", "Northside", "Eastside", "Westside"].map((area) => (
               <button
