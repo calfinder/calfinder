@@ -221,12 +221,13 @@ export function TimeRangeBar({
     };
   }, [drag, moveTo, onChange, min, max]);
 
-  const pct0 = minutesToBarPercent(start, min, max);
-  const pct1 = minutesToBarPercent(end, min, max);
-  const w = Math.max(0, pct1 - pct0);
-  // Handles glide continuously; the time we show/commit always lands on :00 or :30.
+  // Handles jump between 30-minute increments: position everything from the
+  // snapped values so the thumbs and fill land only on :00 or :30 marks.
   const dispStart = snapToStep(start);
   const dispEnd = snapToStep(end);
+  const pct0 = minutesToBarPercent(dispStart, min, max);
+  const pct1 = minutesToBarPercent(dispEnd, min, max);
+  const w = Math.max(0, pct1 - pct0);
     // Keep the 16px thumbs fully inside the track: their centers travel within an
     // 8px inset on each end, and the fill shares the same mapping so it stays aligned.
     const insetPos = (pct: number) => `calc((100% - 16px) * ${pct / 100} + 8px)`;
