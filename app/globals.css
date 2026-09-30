@@ -250,11 +250,13 @@ body,body *{transition:background-color 300ms ease,color 300ms ease,border-color
   .results-table tbody,.results-table tr,.results-table td{display:block;width:100%}
   .results-table tbody tr{padding:.85rem 1rem;border-top:1px solid var(--border);position:relative}
   .results-table td{padding:0;border:none}
-  .results-table td:nth-child(1),.results-table td:nth-child(4),.results-table td:nth-child(7){display:none}
-  .results-table td:nth-child(2){display:inline;vertical-align:middle;margin-right:.4rem}
-  .results-table td:nth-child(3){display:inline;vertical-align:middle}
-  .results-table td:nth-child(5){margin-top:.35rem}
-  .results-table td:nth-child(6){margin-top:.1rem}
+  /* Column rules skip the expanded row: its card sits in that row's only (first) cell */
+  .results-table tbody tr.expanded-row{padding:0}
+  .results-table tr:not(.expanded-row) td:nth-child(1),.results-table tr:not(.expanded-row) td:nth-child(4),.results-table tr:not(.expanded-row) td:nth-child(7){display:none}
+  .results-table tr:not(.expanded-row) td:nth-child(2){display:inline;vertical-align:middle;margin-right:.4rem}
+  .results-table tr:not(.expanded-row) td:nth-child(3){display:inline;vertical-align:middle}
+  .results-table tr:not(.expanded-row) td:nth-child(5){margin-top:.35rem}
+  .results-table tr:not(.expanded-row) td:nth-child(6){margin-top:.1rem}
   .rt-title{font-size:.88rem}
   .rt-time,.rt-location{font-size:.72rem}
   .result-count{font-size:.72rem;margin-bottom:.5rem}
