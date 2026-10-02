@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef } from "react";
 
 import type { Course } from "../../lib/types";
 import { normalizeRoom, type RoomRef, type RoomSlot } from "../../lib/rooms";
@@ -12,7 +12,8 @@ import {
   meetDaysIncludes,
   roomLabel,
   roomSearchText,
-  timeStringToMinutes
+  timeStringToMinutes,
+  tokenizeMeetDays
 } from "./helpers";
 import { CourseDetailCard } from "./SharedUI";
 import type { PreparedCourse, WeekdayToken } from "./types";
@@ -22,26 +23,160 @@ import type { PreparedCourse, WeekdayToken } from "./types";
  * (small, graduate, lab classes...) just show the room is in use.
  */
 type SlotView = RoomSlot & { startMinutes: number; endMinutes: number; course: PreparedCourse | null };
-type RoomEntry = RoomRef & { label: string; searchText: string; slots: SlotView[] };
+type RoomEntry = RoomRef & { label: string; searchText: string; slots: SlotView[]; meetingsPerWeek: number };
+/** A slot placed in its day column; overlapping slots split the column into lanes. */
+type PlacedSlot = { slot: SlotView; lane: number; lanes: number };
 
 const MAX_MATCHES = 40;
 const BUSIEST_COUNT = 8;
 const WEEKDAY_NAMES: Record<WeekdayToken, string> = { M: "Monday", T: "Tuesday", W: "Wednesday", Tr: "Thursday", F: "Friday" };
+const WEEKDAY_SHORT: Record<WeekdayToken, string> = { M: "Mon", T: "Tue", W: "Wed", Tr: "Thu", F: "Fri" };
+// The week grid always covers at least 8 AM–6 PM, and grows to fit earlier or later lectures.
+const GRID_START_HOUR = 8;
+const GRID_END_HOUR = 18;
+// Shorter blocks only have room for the code and time.
+const MIN_MINUTES_FOR_TITLE = 70;
 
 const slotCode = (s: SlotView) => s.course?.code ?? s.code;
 
-/** What's scheduled in the room right now, from the device clock. Null on weekends. */
-function nowStatus(slots: SlotView[]): string | null {
+/** Today's weekday and minutes since midnight from the device clock. Null day on weekends. */
+function getNow(): { day: WeekdayToken | null; minutes: number } {
   const now = new Date();
-  const today = WEEKDAY_BUTTONS[now.getDay() - 1]?.token;
+  return { day: WEEKDAY_BUTTONS[now.getDay() - 1]?.token ?? null, minutes: now.getHours() * 60 + now.getMinutes() };
+}
+
+/** What's scheduled in the room right now. Null on weekends. */
+function nowStatus(slots: SlotView[]): string | null {
+  const { day: today, minutes } = getNow();
   if (!today) return null;
-  const minutes = now.getHours() * 60 + now.getMinutes();
   const todays = slots.filter((s) => meetDaysIncludes(s.meetDays, today));
   const current = todays.find((s) => s.startMinutes <= minutes && minutes < s.endMinutes);
   if (current) return `In use now: ${slotCode(current)} until ${formatMinutes12h(current.endMinutes)}`;
   const next = todays.filter((s) => s.startMinutes > minutes).sort((a, b) => a.startMinutes - b.startMinutes)[0];
   if (next) return `No lecture listed right now · next is ${slotCode(next)} at ${formatMinutes12h(next.startMinutes)}`;
   return "No more lectures listed here today";
+}
+
+/** Splits overlapping slots into side-by-side lanes, like a calendar app. */
+function layoutDay(slots: SlotView[]): PlacedSlot[] {
+  const sorted = [...slots].sort((a, b) => a.startMinutes - b.startMinutes || b.endMinutes - a.endMinutes);
+  const placed: PlacedSlot[] = [];
+  let group: PlacedSlot[] = [];
+  let laneEnds: number[] = [];
+  let groupEnd = -1;
+  const closeGroup = () => {
+    for (const p of group) p.lanes = laneEnds.length;
+    group = [];
+    laneEnds = [];
+  };
+  for (const slot of sorted) {
+    if (slot.startMinutes >= groupEnd) closeGroup();
+    let lane = laneEnds.findIndex((end) => end <= slot.startMinutes);
+    if (lane === -1) lane = laneEnds.push(slot.endMinutes) - 1;
+    else laneEnds[lane] = slot.endMinutes;
+    const p = { slot, lane, lanes: 1 };
+    group.push(p);
+    placed.push(p);
+    groupEnd = Math.max(groupEnd, slot.endMinutes);
+  }
+  closeGroup();
+  return placed;
+}
+
+/** "8 AM", "12 PM" */
+function hourLabel(hour: number): string {
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${h12} ${hour < 12 ? "AM" : "PM"}`;
+}
+
+/** Positions in the grid scale with --room-ppm (pixels per minute), which is smaller on phones. */
+const minutesToPx = (minutes: number) => `calc(${minutes} * var(--room-ppm) * 1px)`;
+
+function RoomWeek({
+  slots,
+  openId,
+  onToggle
+}: {
+  slots: SlotView[];
+  openId: string | null;
+  onToggle: (slot: SlotView) => void;
+}) {
+  const now = getNow();
+  const startMinutes = Math.min(GRID_START_HOUR * 60, Math.floor(Math.min(...slots.map((s) => s.startMinutes)) / 60) * 60);
+  const endMinutes = Math.max(GRID_END_HOUR * 60, Math.ceil(Math.max(...slots.map((s) => s.endMinutes)) / 60) * 60);
+  const hours: number[] = [];
+  for (let m = startMinutes; m <= endMinutes; m += 60) hours.push(m / 60);
+  const showNowLine = now.day !== null && now.minutes >= startMinutes && now.minutes <= endMinutes;
+
+  return (
+    <div className="room-week" role="group" aria-label="Weekly lecture schedule">
+      <div className="room-week-head" aria-hidden="true">
+        <span />
+        {WEEKDAY_BUTTONS.map(({ token }) => (
+          <span key={token} className={`room-week-dayname${token === now.day ? " is-today" : ""}`}>
+            {WEEKDAY_SHORT[token]}
+          </span>
+        ))}
+      </div>
+      <div className="room-week-body" style={{ height: minutesToPx(endMinutes - startMinutes) }}>
+        <div className="room-week-times" aria-hidden="true">
+          {hours.map((h) => (
+            <span key={h} style={{ top: minutesToPx(h * 60 - startMinutes) }}>{hourLabel(h)}</span>
+          ))}
+        </div>
+        {WEEKDAY_BUTTONS.map(({ token }) => {
+          const isToday = token === now.day;
+          return (
+            <div key={token} className={`room-week-day${isToday ? " is-today" : ""}`} role="group" aria-label={WEEKDAY_NAMES[token]}>
+              {layoutDay(slots.filter((s) => meetDaysIncludes(s.meetDays, token))).map(({ slot, lane, lanes }) => {
+                const code = slotCode(slot);
+                const time = formatTimeRange(slot.startTime, slot.endTime);
+                const style: React.CSSProperties = {
+                  top: minutesToPx(slot.startMinutes - startMinutes),
+                  height: `calc(${slot.endMinutes - slot.startMinutes} * var(--room-ppm) * 1px - 2px)`,
+                  left: `calc(${lane} * 100% / ${lanes} + 2px)`,
+                  width: `calc(100% / ${lanes} - 4px)`
+                };
+                const label = `${WEEKDAY_NAMES[token]} ${time}: ${code}, ${slot.course?.title ?? slot.title}`;
+                const content = (
+                  <>
+                    <span className="room-block-code">{code}</span>
+                    <span className="room-block-time">{time}</span>
+                    {slot.endMinutes - slot.startMinutes >= MIN_MINUTES_FOR_TITLE && (
+                      <span className="room-block-title">{slot.course?.title ?? slot.title}</span>
+                    )}
+                  </>
+                );
+                if (!slot.course) {
+                  return (
+                    <div key={slot.ids[0]} className="room-block is-limited" style={style} title={`${label} (not listed for sitting in)`}>
+                      {content}
+                    </div>
+                  );
+                }
+                const isOpen = slot.course.id === openId;
+                return (
+                  <button
+                    key={slot.ids[0]}
+                    type="button"
+                    className={`room-block${isOpen ? " is-open" : ""}`}
+                    style={style}
+                    title={label}
+                    aria-label={label}
+                    aria-pressed={isOpen}
+                    onClick={() => onToggle(slot)}
+                  >
+                    {content}
+                  </button>
+                );
+              })}
+              {isToday && showNowLine && <div className="room-week-now" style={{ top: minutesToPx(now.minutes - startMinutes) }} />}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function RoomsTab({
@@ -53,8 +188,8 @@ export function RoomsTab({
   setQuery,
   selectedKey,
   setSelectedKey,
-  day,
-  setDay,
+  openId,
+  setOpenId,
   savedIds,
   toggleSave,
   setPendingCalendarCourse
@@ -68,13 +203,14 @@ export function RoomsTab({
   setQuery: (v: string) => void;
   selectedKey: string | null;
   setSelectedKey: (key: string | null) => void;
-  day: WeekdayToken;
-  setDay: (d: WeekdayToken) => void;
+  /** The class whose card is open below the week grid */
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
   savedIds: Set<string>;
   toggleSave: (id: string, e: React.MouseEvent) => void;
   setPendingCalendarCourse: (c: Course | null) => void;
 }) {
-  const [openId, setOpenId] = useState<string | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const rooms = useMemo(() => {
     const listedById = new Map(listedCourses.map((c) => [c.id, c]));
@@ -83,9 +219,10 @@ export function RoomsTab({
       const ref = normalizeRoom(slot.building, slot.room);
       let entry = map.get(ref.key);
       if (!entry) {
-        entry = { ...ref, label: roomLabel(ref), searchText: roomSearchText(ref), slots: [] };
+        entry = { ...ref, label: roomLabel(ref), searchText: roomSearchText(ref), slots: [], meetingsPerWeek: 0 };
         map.set(ref.key, entry);
       }
+      entry.meetingsPerWeek += tokenizeMeetDays(slot.meetDays).length;
       entry.slots.push({
         ...slot,
         startMinutes: timeStringToMinutes(slot.startTime),
@@ -97,7 +234,7 @@ export function RoomsTab({
   }, [roomSlots, listedCourses]);
 
   const busiest = useMemo(
-    () => [...rooms.values()].sort((a, b) => b.slots.length - a.slots.length).slice(0, BUSIEST_COUNT),
+    () => [...rooms.values()].sort((a, b) => b.meetingsPerWeek - a.meetingsPerWeek).slice(0, BUSIEST_COUNT),
     [rooms]
   );
 
@@ -113,13 +250,11 @@ export function RoomsTab({
   }, [query, rooms]);
 
   const selected = selectedKey ? rooms.get(selectedKey) ?? null : null;
-  const daySlots = useMemo(
-    () =>
-      (selected?.slots ?? [])
-        .filter((s) => meetDaysIncludes(s.meetDays, day))
-        .sort((a, b) => a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes),
-    [selected, day]
-  );
+  // A card link can name any cross-listed copy; the grid shows the copy Discover lists.
+  const openCourse = useMemo(() => {
+    if (!openId || !selected) return null;
+    return selected.slots.find((s) => s.course && s.ids.includes(openId))?.course ?? null;
+  }, [openId, selected]);
 
   function pickRoom(key: string | null) {
     setSelectedKey(key);
@@ -127,10 +262,20 @@ export function RoomsTab({
     window.scrollTo(0, 0);
   }
 
+  function toggleSlot(slot: SlotView) {
+    if (!slot.course) return;
+    if (openCourse?.id === slot.course.id) {
+      setOpenId(null);
+      return;
+    }
+    setOpenId(slot.course.id);
+    requestAnimationFrame(() => cardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+  }
+
   const intro = (
     <>
       <h1 className="hero-title">Room Schedule</h1>
-      <p className="subheadline">See every lecture that meets in a classroom.</p>
+      <p className="subheadline">See every lecture that meets in a classroom, all week.</p>
     </>
   );
 
@@ -152,6 +297,8 @@ export function RoomsTab({
 
   if (selectedKey) {
     const status = selected ? nowStatus(selected.slots) : null;
+    const hasLimited = selected?.slots.some((s) => !s.course) ?? false;
+    const hasListed = selected?.slots.some((s) => s.course) ?? false;
     return (
       <>
         {intro}
@@ -163,86 +310,32 @@ export function RoomsTab({
             <div className="room-header">
               <h2 className="room-title">{selected.label}</h2>
               <p className="room-meta">
-                {selected.slots.length} {selected.slots.length === 1 ? "class meets" : "classes meet"} here each week ·{" "}
+                {selected.meetingsPerWeek} {selected.meetingsPerWeek === 1 ? "lecture" : "lectures"} a week ·{" "}
                 <a href={buildMapsUrl(selected.building)} target="_blank" rel="noreferrer">Map</a>
               </p>
               {status && <p className="room-status">{status}</p>}
             </div>
-            <div className="day-strip room-day-strip">
-              {WEEKDAY_BUTTONS.map(({ token, label }) => (
-                <button
-                  key={token}
-                  type="button"
-                  className={`day-btn ${day === token ? "active" : ""}`}
-                  onClick={() => { setDay(token); setOpenId(null); }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            {daySlots.length === 0 ? (
-              <p className="search-empty">No lectures listed in this room on {WEEKDAY_NAMES[day]}.</p>
-            ) : (
-              <div className="result-section room-results" key={`${selected.key}-${day}`}>
-                <p className="result-count">
-                  {daySlots.length} {daySlots.length === 1 ? "lecture" : "lectures"} on {WEEKDAY_NAMES[day]} · Click a row to expand
-                </p>
-                <div className="results-table-wrap">
-                  <table className="results-table room-table">
-                    <thead>
-                      <tr>
-                        <th>Time</th>
-                        <th>Code</th>
-                        <th>Title</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {daySlots.map((slot) => {
-                        const course = slot.course;
-                        const time = <td><span className="rt-time">{formatTimeRange(slot.startTime, slot.endTime)}</span></td>;
-                        if (!course) {
-                          return (
-                            <tr key={slot.ids[0]} className="room-row-limited">
-                              {time}
-                              <td><span className="rt-code">{slot.code}</span></td>
-                              <td><span className="rt-title">{slot.title}</span></td>
-                            </tr>
-                          );
-                        }
-                        const isOpen = openId === course.id;
-                        return (
-                          <React.Fragment key={slot.ids[0]}>
-                            <tr className={isOpen ? "row-active" : ""} onClick={() => setOpenId(isOpen ? null : course.id)}>
-                              {time}
-                              <td><span className="rt-code">{course.code}</span></td>
-                              <td><span className="rt-title">{course.title}</span></td>
-                            </tr>
-                            {isOpen && (
-                              <tr className="expanded-row">
-                                <td colSpan={3}>
-                                  <CourseDetailCard
-                                    course={course}
-                                    isSaved={savedIds.has(course.id)}
-                                    onToggleSave={toggleSave}
-                                    onOpenCalendar={(e) => { e.stopPropagation(); setPendingCalendarCourse(course); }}
-                                    onCollapse={(e) => { e.stopPropagation(); setOpenId(null); }}
-                                  />
-                                </td>
-                              </tr>
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                {daySlots.some((s) => !s.course) && (
-                  <p className="room-note">
-                    Grayed-out classes aren&apos;t listed for sitting in (small, graduate and lab classes, for example).
-                    They&apos;re shown so you know the room is in use.
-                  </p>
-                )}
+            <p className="room-legend">
+              {hasListed && <span>Tap a class for details.</span>}
+              {hasLimited && <span><i className="room-swatch" />In use, not listed for sitting in</span>}
+            </p>
+            <RoomWeek slots={selected.slots} openId={openCourse?.id ?? null} onToggle={toggleSlot} />
+            {openCourse && (
+              <div className="room-card" ref={cardRef}>
+                <CourseDetailCard
+                  course={openCourse}
+                  isSaved={savedIds.has(openCourse.id)}
+                  onToggleSave={toggleSave}
+                  onOpenCalendar={(e) => { e.stopPropagation(); setPendingCalendarCourse(openCourse); }}
+                  onCollapse={(e) => { e.stopPropagation(); setOpenId(null); }}
+                />
               </div>
+            )}
+            {hasLimited && (
+              <p className="room-note">
+                Gray classes aren&apos;t listed for sitting in (small, graduate and lab classes, for example).
+                They&apos;re shown so you know the room is in use.
+              </p>
             )}
             <p className="room-note">
               Lectures only. Discussion sections, labs, exams and events aren&apos;t listed, so the room may be in use when nothing
@@ -292,7 +385,7 @@ export function RoomsTab({
                   <span className="search-group-title">{r.label}</span>
                 </div>
                 <div className="search-group-meta">
-                  <span className="search-group-count">{r.slots.length} {r.slots.length === 1 ? "class" : "classes"}</span>
+                  <span className="search-group-count">{r.meetingsPerWeek} {r.meetingsPerWeek === 1 ? "lecture" : "lectures"} a week</span>
                 </div>
                 <span className="search-group-chevron">→</span>
               </button>

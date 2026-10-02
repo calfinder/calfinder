@@ -32,8 +32,7 @@ import {
   shouldUseNow,
   shuffleArray,
   snapToHalfHour,
-  timeStringToMinutes,
-  tokenizeMeetDays
+  timeStringToMinutes
 } from "./calfinder/helpers";
 import { RoomsTab } from "./calfinder/RoomsTab";
 import { SavedTab } from "./calfinder/SavedTab";
@@ -99,7 +98,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
   const [savedIds, setSavedIds] = useState<Set<string>>(() => new Set<string>());
   const [roomQuery, setRoomQuery] = useState("");
   const [selectedRoomKey, setSelectedRoomKey] = useState<string | null>(null);
-  const [roomDay, setRoomDay] = useState<WeekdayToken>("M");
+  const [roomOpenId, setRoomOpenId] = useState<string | null>(null);
   const [roomSlots, setRoomSlots] = useState<RoomSlot[] | null>(null);
   const [roomsFailed, setRoomsFailed] = useState(false);
   const roomsRequested = useRef(false);
@@ -109,7 +108,6 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
     const weekday = getDefaultWeekdayToken();
     const startM = Math.min(getDefaultMinutes(), LATEST_MINUTES - LOCKED_WINDOW_MINUTES);
     setSelectedWeekday(weekday);
-    setRoomDay(weekday);
     setFreeRangeStartMinutes(startM);
     setFreeRangeEndMinutes(Math.min(LATEST_MINUTES, startM + LOCKED_WINDOW_MINUTES));
     setUsingNow(shouldUseNow(weekday, startM));
@@ -152,10 +150,9 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
 
   function openRoom(course: Course) {
     const ref = normalizeRoom(course.building, course.room);
-    const today = getDefaultWeekdayToken();
     setSelectedRoomKey(ref.key);
     setRoomQuery(roomLabel(ref));
-    setRoomDay(meetDaysIncludes(course.meetDays, today) ? today : tokenizeMeetDays(course.meetDays)[0] ?? today);
+    setRoomOpenId(course.id);
     setTopTab("rooms");
     window.scrollTo(0, 0);
   }
@@ -493,8 +490,8 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
               setQuery={setRoomQuery}
               selectedKey={selectedRoomKey}
               setSelectedKey={setSelectedRoomKey}
-              day={roomDay}
-              setDay={setRoomDay}
+              openId={roomOpenId}
+              setOpenId={setRoomOpenId}
               savedIds={savedIds}
               toggleSave={toggleSave}
               setPendingCalendarCourse={setPendingCalendarCourse}

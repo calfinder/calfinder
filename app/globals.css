@@ -301,18 +301,44 @@ body,body *{transition:background-color 300ms ease,color 300ms ease,border-color
 .room-meta{font-size:.82rem;color:var(--muted);margin:0}
 .room-meta a{color:var(--text);text-decoration:underline;text-underline-offset:3px}
 .room-status{display:inline-block;font-family:var(--font-mono);font-size:.72rem;color:var(--text);background:var(--cream-dark);border:1px solid var(--border);border-radius:var(--radius-pill);padding:.3rem .75rem;margin:.75rem 0 0}
-.room-day-strip{justify-content:flex-start}
-.room-results{margin-top:1.25rem}
 .room-note{font-size:.75rem;line-height:1.55;color:var(--muted);margin:1.25rem 0 0;max-width:40rem}
 .room-note a{color:inherit;text-decoration:underline;text-underline-offset:2px}
-.results-table tbody tr.room-row-limited{cursor:default;background:var(--cream)}
-.results-table tbody tr.room-row-limited:hover{background:var(--cream)}
-.room-row-limited .rt-title,.room-row-limited .rt-code,.room-row-limited .rt-time{color:#999;font-weight:400}
 .room-busiest{margin-top:1.5rem}
 .card-location{display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem 1rem}
 .card-room-link{font-family:var(--font-body);font-size:.8rem;color:var(--muted);background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .card-room-link:hover{color:var(--text)}
+/* Week grid: one column per weekday, lectures placed by time */
+.room-legend{display:flex;flex-wrap:wrap;gap:.35rem 1.25rem;font-size:.75rem;color:var(--muted);margin:0 0 .85rem}
+.room-legend span{display:inline-flex;align-items:center;gap:.4rem}
+.room-swatch{display:inline-block;width:.9rem;height:.9rem;border-radius:3px;background:var(--cream-dark);border:1px solid #dcdcdc;border-left:3px solid #cfcfcf}
+.room-week{--room-ppm:.9;--room-time-col:3.4rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.75rem .75rem 1rem .25rem}
+.room-week-head,.room-week-body{display:grid;grid-template-columns:var(--room-time-col) repeat(5,minmax(0,1fr))}
+.room-week-head{padding-bottom:.6rem}
+.room-week-dayname{font-size:.78rem;font-weight:500;color:var(--muted);text-align:center}
+.room-week-dayname.is-today{color:var(--text);font-weight:600}
+.room-week-dayname.is-today::after{content:"";display:block;width:4px;height:4px;border-radius:50%;background:var(--text);margin:.2rem auto 0}
+.room-week-body{position:relative;margin-top:.5rem}
+.room-week-times{position:relative}
+.room-week-times span{position:absolute;right:.55rem;transform:translateY(-50%);font-family:var(--font-mono);font-size:.66rem;color:var(--muted);white-space:nowrap}
+.room-week-day{position:relative;border-left:1px solid var(--border);background-image:repeating-linear-gradient(to bottom,var(--border) 0 1px,transparent 1px calc(60 * var(--room-ppm) * 1px))}
+.room-week-day:last-child{border-right:1px solid var(--border)}
+.room-week-day.is-today{background-color:rgba(0,0,0,.025)}
+.room-block{position:absolute;display:flex;flex-direction:column;gap:.1rem;overflow:hidden;text-align:left;font-family:var(--font-body);color:var(--text);background:var(--surface);border:1px solid #d4d4d4;border-left:3px solid var(--text);border-radius:var(--radius-sm);padding:.25rem .4rem;cursor:pointer;transition:border-color 140ms ease,box-shadow 140ms ease,background-color 140ms ease,color 140ms ease}
+button.room-block:hover{border-color:rgba(0,0,0,.45);border-left-color:var(--text);box-shadow:var(--shadow-sm);z-index:2}
+button.room-block:focus-visible{outline:2px solid var(--text);outline-offset:1px;z-index:2}
+.room-block.is-open{background:var(--navy);border-color:var(--navy);color:#fff}
+.room-block.is-limited{cursor:default;background:var(--cream-dark);border-color:var(--border);border-left-color:#cfcfcf;color:#8f8f8f}
+.room-block-code{flex-shrink:0;font-size:.74rem;font-weight:600;line-height:1.2}
+.room-block-time{flex-shrink:0;font-family:var(--font-mono);font-size:.62rem;line-height:1.2;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room-block-title{font-size:.68rem;line-height:1.25;opacity:.85;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.room-block.is-limited .room-block-code{font-weight:500}
+.room-week-now{position:absolute;left:0;right:0;height:2px;background:var(--text);z-index:3;pointer-events:none}
+.room-week-now::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--text)}
+.room-card{margin-top:1rem;scroll-margin:5rem 0 1rem}
 @media(max-width:640px){
-  .room-day-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:.35rem;width:100%}
-  .results-table.room-table tr:not(.expanded-row) td:nth-child(1){display:block;margin-bottom:.3rem}
+  .room-week{--room-ppm:.72;--room-time-col:2.3rem;padding:.6rem .35rem .75rem 0;border-radius:var(--radius-md)}
+  .room-week-times span{right:.3rem;font-size:.58rem}
+  .room-block{padding:.15rem .2rem;border-left-width:2px;border-radius:4px}
+  .room-block-code{font-size:.6rem;line-height:1.15}
+  .room-block-time,.room-block-title{display:none}
 }
