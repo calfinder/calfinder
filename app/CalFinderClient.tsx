@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { normalizeRoom, type RoomSlot } from "../lib/rooms";
 import type { Course, Interest, Semester } from "../lib/types";
 import { DEFAULT_SEMESTER } from "../lib/types";
 import { CalendarModal } from "./calfinder/CalendarModal";
@@ -27,11 +28,14 @@ import {
   getDefaultWeekdayToken,
   meetDaysIncludes,
   minutesOverlapWindow,
+  roomLabel,
   shouldUseNow,
   shuffleArray,
   snapToHalfHour,
-  timeStringToMinutes
+  timeStringToMinutes,
+  tokenizeMeetDays
 } from "./calfinder/helpers";
+import { RoomsTab } from "./calfinder/RoomsTab";
 import { SavedTab } from "./calfinder/SavedTab";
 import { SearchTab } from "./calfinder/SearchTab";
 import type { PreparedCourse, TopTab, WeekdayToken } from "./calfinder/types";
@@ -93,12 +97,19 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileShowResults, setMobileShowResults] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<string>>(() => new Set<string>());
+  const [roomQuery, setRoomQuery] = useState("");
+  const [selectedRoomKey, setSelectedRoomKey] = useState<string | null>(null);
+  const [roomDay, setRoomDay] = useState<WeekdayToken>("M");
+  const [roomSlots, setRoomSlots] = useState<RoomSlot[] | null>(null);
+  const [roomsFailed, setRoomsFailed] = useState(false);
+  const roomsRequested = useRef(false);
 
   // Hydration-safe defaults: compute time-based selections only on the client.
   useEffect(() => {
     const weekday = getDefaultWeekdayToken();
     const startM = Math.min(getDefaultMinutes(), LATEST_MINUTES - LOCKED_WINDOW_MINUTES);
     setSelectedWeekday(weekday);
+    setRoomDay(weekday);
     setFreeRangeStartMinutes(startM);
     setFreeRangeEndMinutes(Math.min(LATEST_MINUTES, startM + LOCKED_WINDOW_MINUTES));
     setUsingNow(shouldUseNow(weekday, startM));
@@ -118,6 +129,36 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
     () => allCourses.filter((c) => savedIds.has(c.id)),
     [allCourses, savedIds]
   );
+
+  // Room schedules are a separate download, fetched the first time the Rooms tab opens.
+  const loadRooms = useCallback(() => {
+    roomsRequested.current = true;
+    setRoomsFailed(false);
+    fetch("/api/rooms")
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<RoomSlot[]>;
+      })
+      .then(setRoomSlots)
+      .catch((err) => {
+        console.warn("[CalFinder] Could not load room schedules:", err);
+        setRoomsFailed(true);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (topTab === "rooms" && !roomsRequested.current) loadRooms();
+  }, [topTab, loadRooms]);
+
+  function openRoom(course: Course) {
+    const ref = normalizeRoom(course.building, course.room);
+    const today = getDefaultWeekdayToken();
+    setSelectedRoomKey(ref.key);
+    setRoomQuery(roomLabel(ref));
+    setRoomDay(meetDaysIncludes(course.meetDays, today) ? today : tokenizeMeetDays(course.meetDays)[0] ?? today);
+    setTopTab("rooms");
+    window.scrollTo(0, 0);
+  }
 
   function toggleSave(id: string, e: React.MouseEvent) {
     e.stopPropagation();
@@ -349,6 +390,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
             <div className="top-tabs">
               <button className={`top-tab-btn ${topTab === "discover" ? "active" : ""}`} onClick={() => setTopTab("discover")} type="button">Discover</button>
               <button className={`top-tab-btn ${topTab === "search" ? "active" : ""}`} onClick={() => setTopTab("search")} type="button">Search</button>
+              <button className={`top-tab-btn ${topTab === "rooms" ? "active" : ""}`} onClick={() => setTopTab("rooms")} type="button">Rooms</button>
               <button className={`top-tab-btn ${topTab === "saved" ? "active" : ""}`} onClick={() => setTopTab("saved")} type="button">Saved{savedIds.size > 0 && <span className="saved-badge">{savedIds.size}</span>}</button>
               <button className={`top-tab-btn ${topTab === "categories" ? "active" : ""}`} onClick={() => setTopTab("categories")} type="button">Categories</button>
               {SHOW_EDITOR && <button className={`top-tab-btn ${topTab === "editor" ? "active" : ""}`} onClick={() => setTopTab("editor")} type="button">Editor</button>}
@@ -371,6 +413,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
             <div className="mobile-menu-inner">
               <button className={`mobile-nav-btn${topTab === "discover" ? " active" : ""}`} type="button" onClick={() => { setTopTab("discover"); setMenuOpen(false); }}>Discover</button>
               <button className={`mobile-nav-btn${topTab === "search" ? " active" : ""}`} type="button" onClick={() => { setTopTab("search"); setMenuOpen(false); }}>Search</button>
+              <button className={`mobile-nav-btn${topTab === "rooms" ? " active" : ""}`} type="button" onClick={() => { setTopTab("rooms"); setMenuOpen(false); }}>Rooms</button>
               <button className={`mobile-nav-btn${topTab === "saved" ? " active" : ""}`} type="button" onClick={() => { setTopTab("saved"); setMenuOpen(false); }}>
                 Saved{savedIds.size > 0 && <span className="saved-badge" style={{ marginLeft: ".5rem" }}>{savedIds.size}</span>}
               </button>
@@ -414,6 +457,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
               savedIds={savedIds}
               toggleSave={toggleSave}
               setPendingCalendarCourse={setPendingCalendarCourse}
+              openRoom={openRoom}
             />
           ) : topTab === "saved" ? (
             <SavedTab
@@ -422,6 +466,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
               setCurrentCourse={setCurrentCourse}
               toggleSave={toggleSave}
               setPendingCalendarCourse={setPendingCalendarCourse}
+              openRoom={openRoom}
             />
           ) : topTab === "search" ? (
             <SearchTab
@@ -433,6 +478,23 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
               toggleExpandCode={toggleExpandCode}
               currentSearchSection={currentSearchSection}
               setCurrentSearchSection={setCurrentSearchSection}
+              savedIds={savedIds}
+              toggleSave={toggleSave}
+              setPendingCalendarCourse={setPendingCalendarCourse}
+              openRoom={openRoom}
+            />
+          ) : topTab === "rooms" ? (
+            <RoomsTab
+              roomSlots={roomSlots}
+              listedCourses={allCourses}
+              loadFailed={roomsFailed}
+              onRetry={loadRooms}
+              query={roomQuery}
+              setQuery={setRoomQuery}
+              selectedKey={selectedRoomKey}
+              setSelectedKey={setSelectedRoomKey}
+              day={roomDay}
+              setDay={setRoomDay}
               savedIds={savedIds}
               toggleSave={toggleSave}
               setPendingCalendarCourse={setPendingCalendarCourse}

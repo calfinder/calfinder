@@ -1,9 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { hasPhysicalRoom, normalizeRoom, type RoomSlot } from "./rooms";
 import type { CatalogEntry, Course, OfferingRow, Semester } from "./types";
 
 let _cache: Course[] | null = null;
+let _roomCache: RoomSlot[] | null = null;
 
 export async function loadJoinedCourses(): Promise<Course[]> {
   if (_cache && process.env.NODE_ENV !== "development") return _cache;
@@ -11,7 +13,7 @@ export async function loadJoinedCourses(): Promise<Course[]> {
   return _cache;
 }
 
-async function _load(): Promise<Course[]> {
+async function readData(): Promise<{ catalog: CatalogEntry[]; offerings: OfferingRow[] } | null> {
   const root = process.cwd();
   let catalogRaw: string;
   let offeringsRaw: string;
@@ -22,18 +24,21 @@ async function _load(): Promise<Course[]> {
     ]);
   } catch (err) {
     console.error("[loadCourses] Failed to read data files:", err);
-    return [];
+    return null;
   }
 
-  let catalog: CatalogEntry[];
-  let offerings: OfferingRow[];
   try {
-    catalog = JSON.parse(catalogRaw);
-    offerings = JSON.parse(offeringsRaw);
+    return { catalog: JSON.parse(catalogRaw), offerings: JSON.parse(offeringsRaw) };
   } catch (err) {
     console.error("[loadCourses] Failed to parse data JSON:", err);
-    return [];
+    return null;
   }
+}
+
+async function _load(): Promise<Course[]> {
+  const data = await readData();
+  if (!data) return [];
+  const { catalog, offerings } = data;
 
   const byCatalogId = new Map(catalog.map((c) => [c.id, c]));
 
@@ -84,3 +89,38 @@ async function _load(): Promise<Course[]> {
   });
 }
 
+/**
+ * Every in-person lecture time in every room, graduate and small classes included, so the room
+ * view can show when a room is in use. Cross-listed copies (DATA C100 / STAT C100 / DATA C200 ...)
+ * share a room and time and become one slot, named after the most-enrolled copy.
+ */
+export async function loadRoomSchedule(): Promise<RoomSlot[]> {
+  if (_roomCache && process.env.NODE_ENV !== "development") return _roomCache;
+  const data = await readData();
+  if (!data) return [];
+
+  const byCatalogId = new Map(data.catalog.map((c) => [c.id, c]));
+  const slots = new Map<string, OfferingRow[]>();
+  for (const o of data.offerings) {
+    if (!byCatalogId.has(o.catalogId) || !hasPhysicalRoom(o.building, o.room)) continue;
+    const slot = [normalizeRoom(o.building, o.room).key, o.meetDays, o.startTime, o.endTime].join("|");
+    if (!slots.has(slot)) slots.set(slot, []);
+    slots.get(slot)!.push(o);
+  }
+
+  _roomCache = [...slots.values()].map((copies) => {
+    const main = copies.reduce((a, b) => ((b.enrolledCount ?? 0) > (a.enrolledCount ?? 0) ? b : a));
+    const cat = byCatalogId.get(main.catalogId)!;
+    return {
+      ids: copies.map((o) => String(o.id)),
+      code: `${cat.subject} ${cat.courseNumber}`,
+      title: cat.title,
+      building: main.building,
+      room: main.room,
+      meetDays: main.meetDays,
+      startTime: main.startTime,
+      endTime: main.endTime
+    };
+  });
+  return _roomCache;
+}

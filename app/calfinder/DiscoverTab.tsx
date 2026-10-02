@@ -49,7 +49,8 @@ export function DiscoverTab({
   setCurrentCourse,
   savedIds,
   toggleSave,
-  setPendingCalendarCourse
+  setPendingCalendarCourse,
+  openRoom
 }: {
   mobileShowResults: boolean;
   setMobileShowResults: (v: boolean) => void;
@@ -83,6 +84,7 @@ export function DiscoverTab({
   savedIds: Set<string>;
   toggleSave: (id: string, e: React.MouseEvent) => void;
   setPendingCalendarCourse: (c: Course | null) => void;
+  openRoom: (c: Course) => void;
 }) {
   return (
     <React.Fragment>
@@ -251,6 +253,7 @@ export function DiscoverTab({
                                 onToggleSave={toggleSave}
                                 onOpenCalendar={(e) => { e.stopPropagation(); setPendingCalendarCourse(course); }}
                                 onCollapse={(e) => { e.stopPropagation(); setCurrentCourse(null); }}
+                                onOpenRoom={(e) => { e.stopPropagation(); openRoom(course); }}
                               />
                             </td>
                           </tr>

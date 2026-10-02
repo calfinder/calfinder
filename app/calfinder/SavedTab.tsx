@@ -11,13 +11,15 @@ export function SavedTab({
   currentCourse,
   setCurrentCourse,
   toggleSave,
-  setPendingCalendarCourse
+  setPendingCalendarCourse,
+  openRoom
 }: {
   savedCourses: Course[];
   currentCourse: Course | null;
   setCurrentCourse: (c: Course | null) => void;
   toggleSave: (id: string, e: React.MouseEvent) => void;
   setPendingCalendarCourse: (c: Course | null) => void;
+  openRoom: (c: Course) => void;
 }) {
   return (
     <>
@@ -71,6 +73,7 @@ export function SavedTab({
                               onToggleSave={toggleSave}
                               onOpenCalendar={(e) => { e.stopPropagation(); setPendingCalendarCourse(course); }}
                               onCollapse={(e) => { e.stopPropagation(); setCurrentCourse(null); }}
+                              onOpenRoom={(e) => { e.stopPropagation(); openRoom(course); }}
                             />
                           </td>
                         </tr>

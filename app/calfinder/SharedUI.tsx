@@ -46,7 +46,8 @@ export function CourseDetailCard({
   removeMode = false,
   onToggleSave,
   onOpenCalendar,
-  onCollapse
+  onCollapse,
+  onOpenRoom
 }: {
   course: Course;
   isSaved: boolean;
@@ -54,6 +55,8 @@ export function CourseDetailCard({
   onToggleSave: (id: string, e: React.MouseEvent) => void;
   onOpenCalendar: (e: React.MouseEvent) => void;
   onCollapse: (e: React.MouseEvent) => void;
+  /** Shows a link to this room's schedule; left out when the card is already on it. */
+  onOpenRoom?: (e: React.MouseEvent) => void;
 }) {
   return (
     <div className="expanded-card-wrap">
@@ -69,7 +72,10 @@ export function CourseDetailCard({
           <h2 className="card-title">{course.title}</h2>
           <p className="card-meta">{course.code} · <InstructorWithRmpLink instructor={course.instructor} /></p>
           <div className="card-divider" />
-          <div className="card-location"><a href={buildMapsUrl(course.building)} target="_blank" rel="noreferrer">{formatBuildingLabel(course.building)}, Room {course.room}</a></div>
+          <div className="card-location">
+            <a href={buildMapsUrl(course.building)} target="_blank" rel="noreferrer">{formatBuildingLabel(course.building)}, Room {course.room}</a>
+            {onOpenRoom && <button type="button" className="card-room-link" onClick={onOpenRoom}>Room schedule →</button>}
+          </div>
           <p className="card-desc">{stripPrereqText(course.description)}</p>
           <div className="card-tags">{course.interests.map((tag) => <span key={tag} className="card-tag">{tag}</span>)}</div>
         </div>

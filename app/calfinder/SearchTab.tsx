@@ -17,7 +17,8 @@ export function SearchTab({
   setCurrentSearchSection,
   savedIds,
   toggleSave,
-  setPendingCalendarCourse
+  setPendingCalendarCourse,
+  openRoom
 }: {
   semester: Semester;
   searchQuery: string;
@@ -30,6 +31,7 @@ export function SearchTab({
   savedIds: Set<string>;
   toggleSave: (id: string, e: React.MouseEvent) => void;
   setPendingCalendarCourse: (c: Course | null) => void;
+  openRoom: (c: Course) => void;
 }) {
   return (
     <>
@@ -81,6 +83,7 @@ export function SearchTab({
                         onToggleSave={toggleSave}
                         onOpenCalendar={(e) => { e.stopPropagation(); setPendingCalendarCourse(sections[0]); }}
                         onCollapse={(e) => { e.stopPropagation(); toggleExpandCode(code, sections); }}
+                        onOpenRoom={(e) => { e.stopPropagation(); openRoom(sections[0]); }}
                       />
                     ) : sections.map((sec) => {
                       const secOpen = currentSearchSection === sec.id;
@@ -101,6 +104,7 @@ export function SearchTab({
                               onToggleSave={toggleSave}
                               onOpenCalendar={(e) => { e.stopPropagation(); setPendingCalendarCourse(sec); }}
                               onCollapse={(e) => { e.stopPropagation(); setCurrentSearchSection(null); }}
+                              onOpenRoom={(e) => { e.stopPropagation(); openRoom(sec); }}
                             />
                           )}
                         </React.Fragment>

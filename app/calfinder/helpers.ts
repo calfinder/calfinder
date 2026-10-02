@@ -1,3 +1,4 @@
+import type { RoomRef } from "../../lib/rooms";
 import type { Course, Semester } from "../../lib/types";
 import { DEFAULT_SEMESTER } from "../../lib/types";
 import {
@@ -347,6 +348,35 @@ export function formatBuildingLabel(raw: string): string {
   }
 
   return key;
+}
+
+// Nicknames students use for buildings, so "vlsb 2040" finds Valley Life Sciences 2040.
+const BUILDING_NICKNAMES: Record<string, string> = {
+  "Anthro/Art Practice Bldg": "aap",
+  "Berkeley Way West": "bww",
+  Cheit: "haas",
+  "Chou Hall": "haas",
+  "Genetics & Plant Bio": "gpb gpbb",
+  GSPP: "gspp goldman",
+  "Haas Faculty Wing": "haas",
+  "Hearst Field Annex": "hfa",
+  "Hearst Mining": "hmmb",
+  "Joan and Sanford I. Weill": "weill",
+  "Li Ka Shing": "lks lksc",
+  "Social Sciences Building": "ssb",
+  "The Gateway Building": "gateway cdss",
+  "Undergrad Academic Bldg": "uab undergraduate academic building",
+  "Valley Life Sciences": "vlsb lsb"
+};
+
+/** "Wheeler Hall 150" */
+export function roomLabel(ref: RoomRef): string {
+  const building = formatBuildingLabel(ref.building);
+  return ref.room ? `${building} ${ref.room}` : building;
+}
+
+export function roomSearchText(ref: RoomRef): string {
+  return `${ref.building} ${formatBuildingLabel(ref.building)} ${BUILDING_NICKNAMES[ref.building] ?? ""} ${ref.room}`.toLowerCase();
 }
 
 export function buildMapsUrl(building: string) {
