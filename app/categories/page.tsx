@@ -54,7 +54,7 @@ export default function CategoriesPage() {
       </main>
 
       <footer className={styles.footer}>
-        <span className={styles.footerNote}>CalFinder · UC Berkeley</span>
+        <span className={styles.footerNote}>CalFinder · A student project, not affiliated with UC Berkeley</span>
         <span className={styles.footerNote}>Tags are inferred, some courses may span multiple categories.</span>
       </footer>
     </div>

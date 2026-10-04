@@ -519,7 +519,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
                 <text x="16" y="21" fontFamily="Georgia" fontSize="13" fontWeight="bold" fill="#FDB515" textAnchor="middle">CF</text>
               </svg>
             </div>
-            <span className="logo-wordmark">CalFinder <span style={{ fontWeight: 400, opacity: 0.5 }}>· UC Berkeley</span></span>
+            <span className="logo-wordmark">CalFinder <span style={{ fontWeight: 400, opacity: 0.5 }}>· A student project</span></span>
           </a>
           <p className="footer-note footer-disclaimer">
             CalFinder is a student project, not affiliated with or endorsed by UC Berkeley.
