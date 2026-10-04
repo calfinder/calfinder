@@ -522,10 +522,12 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
             <span className="logo-wordmark">CalFinder <span style={{ fontWeight: 400, opacity: 0.5 }}>· A student project</span></span>
           </a>
           <p className="footer-note footer-disclaimer">
-            CalFinder is a student project, not affiliated with or endorsed by UC Berkeley.
-            Sitting in on a class is up to the instructor, and enrolled students get seats first.
-            Times and rooms can change, so check the official schedule at{" "}
-            <a href="https://classes.berkeley.edu" target="_blank" rel="noreferrer">classes.berkeley.edu</a> before you go.
+            <span>CalFinder is a student project, not affiliated with or endorsed by UC Berkeley.</span>
+            <span>Sitting in on a class is up to the instructor, and enrolled students get seats first.</span>
+            <span>
+              Times and rooms can change, so check{" "}
+              <a href="https://classes.berkeley.edu" target="_blank" rel="noreferrer">classes.berkeley.edu</a> before you go.
+            </span>
           </p>
         </footer>
         {pendingCalendarCourse && (

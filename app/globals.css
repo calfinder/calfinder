@@ -344,6 +344,13 @@ button.room-block:focus-visible{outline:2px solid var(--text);outline-offset:1px
 }
 .card-also{font-family:var(--font-body);font-size:.75rem;color:var(--muted);margin:-.6rem 0 1rem}
 .card-sitin{font-family:var(--font-body);font-size:.75rem;color:var(--muted);margin:-.4rem 0 1rem}
-.footer-disclaimer{max-width:34rem;line-height:1.55;margin:0;text-align:right}
+.redesign-root footer{align-items:center;gap:2rem}
+/* One sentence per line, so the block reads as three tidy lines instead of a ragged paragraph */
+.footer-disclaimer{display:flex;flex-direction:column;gap:.15rem;line-height:1.5;margin:0;text-align:right}
 .footer-disclaimer a{color:inherit;text-decoration:underline;text-underline-offset:2px}
-@media (max-width:640px){.footer-disclaimer{text-align:left}}
+@media (max-width:640px){
+  .redesign-root footer{align-items:flex-start;gap:.75rem}
+  .footer-disclaimer{text-align:left;gap:.35rem}
+  /* The Discover tab's Find classes button is pinned to the bottom on phones; keep it off the disclaimer */
+  .redesign-root:has(.cta-wrapper) footer{padding-bottom:6rem}
+}
