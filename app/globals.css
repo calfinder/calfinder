@@ -342,3 +342,8 @@ button.room-block:focus-visible{outline:2px solid var(--text);outline-offset:1px
   .room-block-code{font-size:.6rem;line-height:1.15}
   .room-block-time,.room-block-title{display:none}
 }
+.card-also{font-family:var(--font-body);font-size:.75rem;color:var(--muted);margin:-.6rem 0 1rem}
+.card-sitin{font-family:var(--font-body);font-size:.75rem;color:var(--muted);margin:-.4rem 0 1rem}
+.footer-disclaimer{max-width:34rem;line-height:1.55;margin:0;text-align:right}
+.footer-disclaimer a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+@media (max-width:640px){.footer-disclaimer{text-align:left}}

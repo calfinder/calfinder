@@ -71,11 +71,13 @@ export function CourseDetailCard({
           </div>
           <h2 className="card-title">{course.title}</h2>
           <p className="card-meta">{course.code} · <InstructorWithRmpLink instructor={course.instructor} /></p>
+          {course.alsoListedAs?.length ? <p className="card-also">Also listed as {course.alsoListedAs.join(", ")}</p> : null}
           <div className="card-divider" />
           <div className="card-location">
-            <a href={buildMapsUrl(course.building)} target="_blank" rel="noreferrer">{formatBuildingLabel(course.building)}, Room {course.room}</a>
+            <a href={buildMapsUrl(course.building)} target="_blank" rel="noreferrer">{formatBuildingLabel(course.building)}{course.room ? `, Room ${course.room}` : ""}</a>
             {onOpenRoom && <button type="button" className="card-room-link" onClick={onOpenRoom}>Room schedule →</button>}
           </div>
+          <p className="card-sitin">Sitting in is up to the instructor, and enrolled students get seats first.</p>
           <p className="card-desc">{stripPrereqText(course.description)}</p>
           <div className="card-tags">{course.interests.map((tag) => <span key={tag} className="card-tag">{tag}</span>)}</div>
         </div>

@@ -56,7 +56,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
         startMinutes: timeStringToMinutes(c.startTime),
         endMinutes: timeStringToMinutes(c.endTime),
         subjectCode: (c.code.split(" ")[0] || "").toUpperCase(),
-        searchText: `${c.title} ${c.code} ${c.instructor} ${c.department} ${c.description}`.toLowerCase()
+        searchText: `${c.title} ${c.code} ${(c.alsoListedAs ?? []).join(" ")} ${c.instructor} ${c.department} ${c.description}`.toLowerCase()
       })),
     [initialCourses]
   ) as PreparedCourse[];
@@ -521,6 +521,12 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
             </div>
             <span className="logo-wordmark">CalFinder <span style={{ fontWeight: 400, opacity: 0.5 }}>· UC Berkeley</span></span>
           </a>
+          <p className="footer-note footer-disclaimer">
+            CalFinder is a student project, not affiliated with or endorsed by UC Berkeley.
+            Sitting in on a class is up to the instructor, and enrolled students get seats first.
+            Times and rooms can change, so check the official schedule at{" "}
+            <a href="https://classes.berkeley.edu" target="_blank" rel="noreferrer">classes.berkeley.edu</a> before you go.
+          </p>
         </footer>
         {pendingCalendarCourse && (
           <CalendarModal course={pendingCalendarCourse} onClose={() => setPendingCalendarCourse(null)} />

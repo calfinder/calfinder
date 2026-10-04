@@ -41,6 +41,8 @@ export type OfferingRow = {
   enrolledMax: number | null;
   waitlistedCount: number | null;
   enrollmentStatus: string | null;
+  /** Other codes for the same class when it is cross-listed (e.g. COMPSCI C8 for DATA C8) */
+  alsoListedAs?: string[];
 };
 
 /** Joined row used by the client UI (built on the server). */
@@ -62,4 +64,6 @@ export type Course = {
   enrolledMax: number | null;
   waitlistedCount: number | null;
   enrollmentStatus: string | null;
+  /** Other codes for the same class when it is cross-listed */
+  alsoListedAs?: string[];
 };

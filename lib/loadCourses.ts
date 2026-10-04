@@ -4,6 +4,10 @@ import path from "node:path";
 import { hasPhysicalRoom, normalizeRoom, type RoomSlot } from "./rooms";
 import type { CatalogEntry, Course, OfferingRow, Semester } from "./types";
 
+// Classes with fewer students than this (in the latest scrape) are hidden: a visitor would
+// likely find a near-empty or cancelled room.
+const MIN_ENROLLED = 10;
+
 let _cache: Course[] | null = null;
 let _roomCache: RoomSlot[] | null = null;
 
@@ -61,6 +65,8 @@ async function _load(): Promise<Course[]> {
 
   return offerings
     .filter((o) => !/internet|online/i.test(o.building ?? ""))
+    .filter((o) => o.enrolledCount === null || o.enrolledCount >= MIN_ENROLLED)
+    .filter((o) => !/^(tbd|unknown)$/i.test(o.room ?? "") && !/^(unknown|tbd)$/i.test(o.building ?? ""))
     .filter((o) => {
       const cat = byCatalogId.get(o.catalogId);
       return cat ? isUndergrad(cat) && isNotProject(cat) && isNotLab(cat) && isNotBootcamp(cat) && isNotSelectedTopics(cat) : false;
@@ -84,7 +90,8 @@ async function _load(): Promise<Course[]> {
       enrolledCount: o.enrolledCount ?? null,
       enrolledMax: o.enrolledMax ?? null,
       waitlistedCount: o.waitlistedCount ?? null,
-      enrollmentStatus: o.enrollmentStatus ?? null
+      enrollmentStatus: o.enrollmentStatus ?? null,
+      ...(o.alsoListedAs?.length ? { alsoListedAs: o.alsoListedAs } : {})
     };
   });
 }
