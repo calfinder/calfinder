@@ -338,6 +338,14 @@ button.week-block:focus-visible{outline:2px solid var(--navy);outline-offset:1px
 .week-grid-now{position:absolute;left:0;right:0;height:2px;background:var(--gold-dim);z-index:3;pointer-events:none}
 .week-grid-now::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--gold-dim)}
 .room-card{margin-top:1rem;scroll-margin:5rem 0 1rem}
+/* Saved: week/list switch and calendar export */
+.saved-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;margin:.5rem 0 .4rem}
+.view-toggle{display:inline-flex;gap:2px;border:1px solid var(--border);border-radius:var(--radius-pill);background:var(--cream-dark);padding:3px}
+.view-toggle button{font-family:var(--font-body);font-size:.8rem;color:var(--muted);background:transparent;border:none;border-radius:var(--radius-pill);padding:.4rem 1rem;cursor:pointer}
+.view-toggle button:hover{color:var(--text)}
+.view-toggle button.active{background:var(--surface);color:var(--navy);font-weight:500;box-shadow:var(--shadow-sm)}
+.saved-calendar-hint{font-size:.75rem;line-height:1.5;color:var(--muted);margin:0 0 1.25rem;max-width:44rem}
+.saved-overlap{font-size:.8rem;line-height:1.5;color:var(--text);background:rgba(253,181,21,.14);border:1px solid rgba(176,125,0,.25);border-radius:var(--radius-sm);padding:.55rem .8rem;margin:0 0 .85rem}
 @media(max-width:640px){
   .week-grid{--week-ppm:.72;--week-time-col:2.3rem;padding:.6rem .35rem .75rem 0;border-radius:var(--radius-md)}
   .week-grid-times span{right:.3rem;font-size:.58rem}

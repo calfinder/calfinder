@@ -1,4 +1,4 @@
-import type { Interest } from "../../lib/types";
+import type { Interest, Semester } from "../../lib/types";
 import type { WeekdayToken } from "./types";
 
 export const INTEREST_OPTIONS: Interest[] = [
@@ -43,3 +43,15 @@ export const WEEKDAY_BUTTONS: { token: WeekdayToken; label: string }[] = [
 export const DAY_LABEL: Record<WeekdayToken, string> = { M: "M", T: "T", W: "W", Tr: "Th", F: "F" };
 
 export const BERKELEY_TZ = "America/Los_Angeles";
+
+/**
+ * Lecture dates from the Berkeley academic calendar (registrar.berkeley.edu), used when saved
+ * classes are added to a calendar. Holidays are days with no classes.
+ */
+export const SEMESTER_DATES: Record<Semester, { classesBegin: string; classesEnd: string; holidays: string[] }> = {
+  "Fall 2026": {
+    classesBegin: "2026-08-26",
+    classesEnd: "2026-12-04",
+    holidays: ["2026-09-07", "2026-11-11", "2026-11-25", "2026-11-26", "2026-11-27"]
+  }
+};

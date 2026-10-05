@@ -7,6 +7,7 @@ import {
   EVENING_WINDOW_END_MINUTES,
   EVENING_WINDOW_START_MINUTES,
   LATEST_MINUTES,
+  SEMESTER_DATES,
   UC_BERKELEY_RMP_SCHOOL_ID
 } from "./constants";
 import type { WeekdayToken } from "./types";
@@ -544,9 +545,11 @@ export function openGoogleCalendar(course: Course, repeat: "once" | "weekly") {
 }
 
 export function downloadJsonFile(filename: string, data: unknown) {
-  const blob = new Blob([`${JSON.stringify(data, null, 2)}\n`], {
-    type: "application/json;charset=utf-8"
-  });
+  downloadTextFile(filename, `${JSON.stringify(data, null, 2)}\n`, "application/json;charset=utf-8");
+}
+
+export function downloadTextFile(filename: string, text: string, type: string) {
+  const blob = new Blob([text], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -625,4 +628,131 @@ export async function shareLink(url: string, title: string): Promise<"shared" | 
   } catch {
     return "failed";
   }
+}
+
+const ICS_TOKEN_TO_JS_DAY: Record<WeekdayToken, number> = { M: 1, T: 2, W: 3, Tr: 4, F: 5 };
+
+const parseYmd = (ymd: string) => {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return { y, m, d };
+};
+
+/** The UTC instant of a Berkeley wall-clock time (handles daylight saving). */
+function berkeleyToUtc(y: number, m: number, d: number, hh: number, mm: number, ss: number): Date {
+  for (const offset of [7, 8]) {
+    const candidate = new Date(Date.UTC(y, m - 1, d, hh + offset, mm, ss));
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: BERKELEY_TZ,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric"
+    }).formatToParts(candidate);
+    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+    if (get("day") === d && get("hour") === hh) return candidate;
+  }
+  return new Date(Date.UTC(y, m - 1, d, hh + 8, mm, ss));
+}
+
+const icsUtc = (date: Date) => date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+const icsLocal = (y: number, m: number, d: number, time: string) => `${y}${pad2(m)}${pad2(d)}T${time.replace(":", "")}00`;
+const icsText = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+
+/** Folds lines over 75 bytes, as the calendar format requires. */
+function foldIcsLine(line: string): string {
+  const encoder = new TextEncoder();
+  const out: string[] = [];
+  let current = "";
+  let bytes = 0;
+  for (const ch of line) {
+    const size = encoder.encode(ch).length;
+    if (bytes + size > (out.length === 0 ? 75 : 74)) {
+      out.push(current);
+      current = "";
+      bytes = 0;
+    }
+    current += ch;
+    bytes += size;
+  }
+  out.push(current);
+  return out.join("\r\n ");
+}
+
+const ICS_TIMEZONE = [
+  "BEGIN:VTIMEZONE",
+  "TZID:America/Los_Angeles",
+  "BEGIN:DAYLIGHT",
+  "TZOFFSETFROM:-0800",
+  "TZOFFSETTO:-0700",
+  "TZNAME:PDT",
+  "DTSTART:19700308T020000",
+  "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU",
+  "END:DAYLIGHT",
+  "BEGIN:STANDARD",
+  "TZOFFSETFROM:-0700",
+  "TZOFFSETTO:-0800",
+  "TZNAME:PST",
+  "DTSTART:19701101T020000",
+  "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU",
+  "END:STANDARD",
+  "END:VTIMEZONE"
+];
+
+/** True when the class has days and a real start and end time, so it can go on a grid or calendar. */
+export function hasMeetingTime(course: Pick<Course, "meetDays" | "startTime" | "endTime">): boolean {
+  const start = timeStringToMinutes(course.startTime);
+  const end = timeStringToMinutes(course.endTime);
+  return tokenizeMeetDays(course.meetDays).length > 0 && start > 0 && end > start;
+}
+
+/**
+ * A calendar file (.ics) with each class as a weekly event from its next meeting until classes end,
+ * skipping academic holidays. Classes with no set time, or none left this semester, are left out.
+ */
+export function buildSemesterIcs(courses: Course[], now: Date = new Date()): { ics: string; count: number } {
+  const events: string[] = [];
+  for (const course of courses) {
+    const semester = SEMESTER_DATES[getCourseSemester(course)];
+    const byDay = meetDaysToRfcByDay(tokenizeMeetDays(course.meetDays));
+    if (!semester || !byDay || !hasMeetingTime(course)) continue;
+
+    const begin = parseYmd(semester.classesBegin);
+    const beginInstant = berkeleyToUtc(begin.y, begin.m, begin.d, 0, 0, 0);
+    const first = nextSessionBerkeleyYmd(course.meetDays, beginInstant > now ? beginInstant : now);
+    const end = parseYmd(semester.classesEnd);
+    const firstKey = `${first.y}-${pad2(first.m)}-${pad2(first.d)}`;
+    if (firstKey > semester.classesEnd) continue;
+
+    const days = tokenizeMeetDays(course.meetDays).map((t) => ICS_TOKEN_TO_JS_DAY[t]);
+    const skipped = semester.holidays.filter((h) => {
+      const { y, m, d } = parseYmd(h);
+      return h >= firstKey && days.includes(new Date(Date.UTC(y, m - 1, d)).getUTCDay());
+    });
+    const location = `${formatBuildingLabel(course.building)}${course.room && course.room !== "TBD" ? `, Room ${course.room}` : ""}`;
+    const details = [
+      course.instructor && course.instructor !== "Staff" ? `Instructor: ${course.instructor}` : "",
+      "Saved from CalFinder. Sitting in is up to the instructor, and times and rooms can change, so check classes.berkeley.edu before you go.",
+      siteLink({ class: classSlug(course) })
+    ].filter(Boolean).join("\n");
+
+    events.push(
+      "BEGIN:VEVENT",
+      `UID:${classSlug(course)}-${toSlug(getCourseSemester(course))}@calfinder.app`,
+      `DTSTAMP:${icsUtc(now)}`,
+      `DTSTART;TZID=${BERKELEY_TZ}:${icsLocal(first.y, first.m, first.d, course.startTime)}`,
+      `DTEND;TZID=${BERKELEY_TZ}:${icsLocal(first.y, first.m, first.d, course.endTime)}`,
+      `RRULE:FREQ=WEEKLY;BYDAY=${byDay};UNTIL=${icsUtc(berkeleyToUtc(end.y, end.m, end.d, 23, 59, 59))}`,
+      ...skipped.map((h) => {
+        const { y, m, d } = parseYmd(h);
+        return `EXDATE;TZID=${BERKELEY_TZ}:${icsLocal(y, m, d, course.startTime)}`;
+      }),
+      `SUMMARY:${icsText(`${course.code} · ${course.title}`)}`,
+      `LOCATION:${icsText(location)}`,
+      `DESCRIPTION:${icsText(details)}`,
+      "END:VEVENT"
+    );
+  }
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CalFinder//Saved classes//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", ...ICS_TIMEZONE, ...events, "END:VCALENDAR"];
+  return { ics: `${lines.map(foldIcsLine).join("\r\n")}\r\n`, count: events.filter((l) => l === "BEGIN:VEVENT").length };
 }
