@@ -308,6 +308,9 @@ body,body *{transition:background-color 300ms ease,color 300ms ease,border-color
 .room-status{display:inline-block;font-family:var(--font-mono);font-size:.72rem;color:var(--text);background:var(--cream-dark);border:1px solid var(--border);border-radius:var(--radius-pill);padding:.3rem .75rem;margin:.75rem 0 0}
 .room-note{font-size:.75rem;line-height:1.55;color:var(--muted);margin:1.25rem 0 0;max-width:40rem}
 .room-note a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.room-notes{display:flex;flex-direction:column;gap:.2rem;margin:1rem 0 0;font-size:.75rem;line-height:1.5;color:var(--muted)}
+.room-notes p{margin:0}
+.room-notes a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .room-busiest{margin-top:1.5rem}
 .card-location{display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem 1rem}
 .card-room-link{font-family:var(--font-body);font-size:.8rem;color:var(--muted);background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}

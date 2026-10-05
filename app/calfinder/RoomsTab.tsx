@@ -222,23 +222,16 @@ export function RoomsTab({
                 />
               </div>
             )}
-            {hasLimited && (
-              <p className="room-note">
-                Gray classes aren&apos;t listed for sitting in (small, graduate and lab classes, for example).
-                They&apos;re shown so you know the room is in use.
-              </p>
-            )}
-            <p className="room-note">
-              Lectures only. Discussion sections, labs, exams and events aren&apos;t listed, so the room may be in use when nothing
-              shows here. Times and rooms can change, so check{" "}
-              <a href="https://classes.berkeley.edu" target="_blank" rel="noreferrer">classes.berkeley.edu</a> before you go.
+            <div className="room-notes">
+              {hasLimited && <p>Gray classes aren&apos;t listed for sitting in, but they show when the room is in use.</p>}
+              <p>Only lectures are listed, so sections, labs, exams and events may still use the room.</p>
               {selected.seats !== null && (
-                <>
-                  {" "}Seat count from UC Berkeley&apos;s{" "}
+                <p>
+                  Seat count from UC Berkeley&apos;s{" "}
                   <a href={CLASSROOM_DATABASE_URL} target="_blank" rel="noreferrer">classroom database</a>.
-                </>
+                </p>
               )}
-            </p>
+            </div>
           </div>
         )}
       </>
