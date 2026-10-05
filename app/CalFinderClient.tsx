@@ -377,7 +377,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
             <a className="logo" href="#">
               <div className="logo-mark">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                  <text x="16" y="21" fontFamily="system-ui, sans-serif" fontSize="12" fontWeight="bold" fill="#fff" textAnchor="middle">CF</text>
+                  <text x="16" y="21" fontFamily="system-ui, sans-serif" fontSize="12" fontWeight="bold" fill="#FDB515" textAnchor="middle">CF</text>
                 </svg>
               </div>
               <span className="logo-wordmark">CalFinder</span>
