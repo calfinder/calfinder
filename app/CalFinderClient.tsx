@@ -84,6 +84,9 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
     EARLIEST_MINUTES + LOCKED_WINDOW_MINUTES
   );
   const [usingNow, setUsingNow] = useState(true);
+  // The page is built ahead of time, so the day and time controls stay hidden until the
+  // browser fills in the current time; otherwise they'd flash 8 AM Monday first.
+  const [clockReady, setClockReady] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>([]);
   const [selectedArea, setSelectedArea] = useState<string | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
@@ -119,6 +122,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
     setFreeRangeStartMinutes(startM);
     setFreeRangeEndMinutes(Math.min(LATEST_MINUTES, startM + LOCKED_WINDOW_MINUTES));
     setUsingNow(shouldUseNow(weekday, startM));
+    setClockReady(true);
   }, []);
 
   useEffect(() => {
@@ -486,6 +490,7 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
         <main className="redesign-main">
           {topTab === "discover" ? (
             <DiscoverTab
+              clockReady={clockReady}
               mobileShowResults={mobileShowResults}
               setMobileShowResults={setMobileShowResults}
               freeRangeStartMinutes={freeRangeStartMinutes}

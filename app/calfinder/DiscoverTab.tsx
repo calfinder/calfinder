@@ -18,6 +18,7 @@ import type { WeekdayToken } from "./types";
 const PAGE_SIZE = 10;
 
 export function DiscoverTab({
+  clockReady,
   mobileShowResults,
   setMobileShowResults,
   freeRangeStartMinutes,
@@ -52,6 +53,8 @@ export function DiscoverTab({
   setPendingCalendarCourse,
   openRoom
 }: {
+  /** False until the browser has set today's day and time */
+  clockReady: boolean;
   mobileShowResults: boolean;
   setMobileShowResults: (v: boolean) => void;
   freeRangeStartMinutes: number;
@@ -109,7 +112,7 @@ export function DiscoverTab({
         <p className="subheadline">Wander into a class.</p>
         <p className="description">Pick a time range you&apos;re free and what sparks your curiosity. We&apos;ll list Berkeley classes that meet during that window on the day you choose.</p>
         <div className="divider" />
-        <div className="form-section when-section">
+        <div className={`form-section when-section${clockReady ? "" : " is-pending"}`}>
           <div className="section-label when-section-label">
             <div className="when-free-row">
               <span className="section-title">When are you free?</span>

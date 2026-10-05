@@ -292,6 +292,9 @@ body,body *{transition:background-color 300ms ease,color 300ms ease,border-color
   .filter-tag{font-family:var(--font-body);font-size:.7rem;letter-spacing:0;color:var(--text);background:var(--chip-bg);border:1px solid var(--border);border-radius:var(--radius-pill);padding:.25rem .65rem;white-space:nowrap;flex:0 0 auto}
 }
 
+/* Until the browser sets today's day and time, keep the controls' space but don't show the built-in 8 AM Monday */
+.when-section.is-pending .time-range-block,.when-section.is-pending .day-strip,.when-section.is-pending .when-now-btn{visibility:hidden}
+
 /* Room schedule */
 .room-back-btn,.room-link-btn{font-family:var(--font-body);font-size:.82rem;color:var(--muted);background:none;border:none;cursor:pointer;padding:0}
 .room-back-btn{display:inline-flex;margin:1.25rem 0 .25rem}
