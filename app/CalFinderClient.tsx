@@ -20,6 +20,7 @@ import {
 import { DiscoverTab } from "./calfinder/DiscoverTab";
 import { EditorTab } from "./calfinder/EditorTab";
 import {
+  classSlug,
   downloadJsonFile,
   formatBuildingLabel,
   formatMinutes12h,
@@ -29,6 +30,7 @@ import {
   meetDaysIncludes,
   minutesOverlapWindow,
   roomLabel,
+  roomSlug,
   shouldUseNow,
   shuffleArray,
   snapToHalfHour,
@@ -44,6 +46,9 @@ const SHOW_EDITOR = false;
 
 // Minimum size of the free-time window, in minutes.
 const FREE_RANGE_MIN_GAP = 30;
+
+// Tabs a link can open with ?tab=
+const LINKABLE_TABS: TopTab[] = ["search", "rooms", "saved", "categories"];
 
 export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }) {
   const preparedCourses = useMemo(
@@ -102,6 +107,9 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
   const [roomSlots, setRoomSlots] = useState<RoomSlot[] | null>(null);
   const [roomsFailed, setRoomsFailed] = useState(false);
   const roomsRequested = useRef(false);
+  // A ?room= link waits here until the room data has loaded
+  const [pendingRoomSlug, setPendingRoomSlug] = useState<string | null>(null);
+  const [linkRead, setLinkRead] = useState(false);
 
   // Hydration-safe defaults: compute time-based selections only on the client.
   useEffect(() => {
@@ -122,6 +130,27 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
       setSavedIds(new Set<string>());
     }
   }, []);
+
+  // Shared links: ?class=math-54-mwf-0800 opens that class in Search, ?room=dwinelle-155 opens a room.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const classParam = params.get("class");
+    const roomParam = params.get("room");
+    const tabParam = params.get("tab") as TopTab | null;
+    const linked = classParam ? allCourses.find((c) => classSlug(c) === classParam) : undefined;
+    if (linked) {
+      setSearchQuery(linked.code);
+      setExpandedCodes(new Set([linked.code]));
+      setCurrentSearchSection(linked.id);
+      setTopTab("search");
+    } else if (roomParam) {
+      setPendingRoomSlug(roomParam);
+      setTopTab("rooms");
+    } else if (tabParam && LINKABLE_TABS.includes(tabParam)) {
+      setTopTab(tabParam);
+    }
+    setLinkRead(true);
+  }, [allCourses]);
 
   const savedCourses = useMemo(
     () => allCourses.filter((c) => savedIds.has(c.id)),
@@ -147,6 +176,41 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
   useEffect(() => {
     if (topTab === "rooms" && !roomsRequested.current) loadRooms();
   }, [topTab, loadRooms]);
+
+  useEffect(() => {
+    if (!pendingRoomSlug || !roomSlots) return;
+    const slot = roomSlots.find((s) => roomSlug(normalizeRoom(s.building, s.room)) === pendingRoomSlug);
+    if (slot) {
+      const ref = normalizeRoom(slot.building, slot.room);
+      setSelectedRoomKey(ref.key);
+      setRoomQuery(roomLabel(ref));
+    } else {
+      setRoomQuery(pendingRoomSlug.replace(/-/g, " "));
+    }
+    setPendingRoomSlug(null);
+  }, [pendingRoomSlug, roomSlots]);
+
+  // Keep the address bar pointing at what's on screen, so it can be copied and shared.
+  useEffect(() => {
+    if (!linkRead) return;
+    const params = new URLSearchParams();
+    const openSearchCourse = topTab === "search" && currentSearchSection ? allCourses.find((c) => c.id === currentSearchSection) : undefined;
+    if (topTab === "rooms" && pendingRoomSlug) {
+      params.set("room", pendingRoomSlug);
+    } else if (topTab === "rooms" && selectedRoomKey) {
+      const [building, room] = selectedRoomKey.split("|");
+      params.set("room", roomSlug({ key: selectedRoomKey, building, room }));
+    } else if (openSearchCourse) {
+      params.set("class", classSlug(openSearchCourse));
+    } else if (LINKABLE_TABS.includes(topTab)) {
+      params.set("tab", topTab);
+    }
+    const query = params.toString();
+    const next = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.replaceState(window.history.state, "", next);
+    }
+  }, [linkRead, topTab, selectedRoomKey, pendingRoomSlug, currentSearchSection, allCourses]);
 
   function openRoom(course: Course) {
     const ref = normalizeRoom(course.building, course.room);

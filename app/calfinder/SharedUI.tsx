@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { Course } from "../../lib/types";
 import {
   buildMapsUrl,
+  classSlug,
   formatBuildingLabel,
   formatInstructor,
   formatMeetDays,
@@ -13,8 +14,41 @@ import {
   getDisplayDepartment,
   minutesToBarPercent,
   rateMyProfessorSearchUrl,
+  shareLink,
+  siteLink,
   stripPrereqText
 } from "./helpers";
+
+/** Shares (phones) or copies (computers) a link built at click time, and says which happened. */
+export function ShareButton({ getUrl, title, className, label = "Share" }: {
+  getUrl: () => string;
+  title: string;
+  className: string;
+  label?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  async function onClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    const url = getUrl();
+    const result = await shareLink(url, title);
+    if (result === "failed") {
+      window.prompt("Copy this link:", url);
+    } else if (result === "copied") {
+      setCopied(true);
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  return (
+    <button type="button" className={className} onClick={onClick}>
+      <span aria-live="polite">{copied ? "Link copied" : label}</span>
+    </button>
+  );
+}
 
 export function InstructorWithRmpLink({ instructor }: { instructor: string }) {
   const formatted = formatInstructor(instructor);
@@ -87,6 +121,11 @@ export function CourseDetailCard({
             {removeMode ? "Remove" : isSaved ? "Saved" : "Save"}
           </button>
           <button className="btn-secondary" type="button" onClick={onOpenCalendar}>Add to Calendar</button>
+          <ShareButton
+            className="btn-secondary"
+            title={`${course.code}: ${course.title}`}
+            getUrl={() => siteLink({ class: classSlug(course) })}
+          />
           <button className="btn-primary" type="button" onClick={onCollapse}>Collapse ↑</button>
         </div>
       </div>

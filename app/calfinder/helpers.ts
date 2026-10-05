@@ -585,3 +585,44 @@ export function minutesToBarPercent(m: number, min: number, max: number): number
   if (max <= min) return 0;
   return ((m - min) / (max - min)) * 100;
 }
+
+const toSlug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+/** "math-54-mwf-0800": readable, and stays the same when the data is refreshed. */
+export function classSlug(course: Pick<Course, "code" | "meetDays" | "startTime">): string {
+  return toSlug(`${course.code} ${course.meetDays} ${course.startTime.replace(":", "")}`);
+}
+
+/** "dwinelle-155" */
+export function roomSlug(ref: RoomRef): string {
+  return toSlug(`${ref.building} ${ref.room}`);
+}
+
+/** A link to the site with these query params, e.g. { room: "dwinelle-155" }. */
+export function siteLink(params: Record<string, string>): string {
+  const url = new URL(window.location.pathname, window.location.origin);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  return url.toString();
+}
+
+/**
+ * Phones get the share sheet; everything else copies the link.
+ * Resolves to what happened so the button can say so.
+ */
+export async function shareLink(url: string, title: string): Promise<"shared" | "copied" | "failed"> {
+  const touch = typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+  if (touch && typeof navigator.share === "function") {
+    try {
+      await navigator.share({ title, url });
+      return "shared";
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return "shared";
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    return "copied";
+  } catch {
+    return "failed";
+  }
+}
