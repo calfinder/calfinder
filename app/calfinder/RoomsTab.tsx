@@ -23,7 +23,7 @@ import type { PreparedCourse, WeekdayToken } from "./types";
  * (small, graduate, lab classes...) just show the room is in use.
  */
 type SlotView = RoomSlot & { startMinutes: number; endMinutes: number; course: PreparedCourse | null };
-type RoomEntry = RoomRef & { label: string; searchText: string; slots: SlotView[]; meetingsPerWeek: number };
+type RoomEntry = RoomRef & { label: string; searchText: string; slots: SlotView[]; meetingsPerWeek: number; seats: number | null };
 /** A slot placed in its day column; overlapping slots split the column into lanes. */
 type PlacedSlot = { slot: SlotView; lane: number; lanes: number };
 
@@ -38,6 +38,8 @@ const GRID_END_HOUR = 18;
 const MIN_MINUTES_FOR_TITLE = 70;
 
 const slotCode = (s: SlotView) => s.course?.code ?? s.code;
+const seatsLabel = (seats: number) => `${seats.toLocaleString("en-US")} seats`;
+const CLASSROOM_DATABASE_URL = "https://classrooms.berkeley.edu/classroom-database";
 
 /** Today's weekday and minutes since midnight from the device clock. Null day on weekends. */
 function getNow(): { day: WeekdayToken | null; minutes: number } {
@@ -219,9 +221,10 @@ export function RoomsTab({
       const ref = normalizeRoom(slot.building, slot.room);
       let entry = map.get(ref.key);
       if (!entry) {
-        entry = { ...ref, label: roomLabel(ref), searchText: roomSearchText(ref), slots: [], meetingsPerWeek: 0 };
+        entry = { ...ref, label: roomLabel(ref), searchText: roomSearchText(ref), slots: [], meetingsPerWeek: 0, seats: null };
         map.set(ref.key, entry);
       }
+      entry.seats ??= slot.seats ?? null;
       entry.meetingsPerWeek += tokenizeMeetDays(slot.meetDays).length;
       entry.slots.push({
         ...slot,
@@ -310,6 +313,7 @@ export function RoomsTab({
             <div className="room-header">
               <h2 className="room-title">{selected.label}</h2>
               <p className="room-meta">
+                {selected.seats !== null && `${seatsLabel(selected.seats)} · `}
                 {selected.meetingsPerWeek} {selected.meetingsPerWeek === 1 ? "lecture" : "lectures"} a week ·{" "}
                 <a href={buildMapsUrl(selected.building)} target="_blank" rel="noreferrer">Map</a>
               </p>
@@ -341,6 +345,12 @@ export function RoomsTab({
               Lectures only. Discussion sections, labs, exams and events aren&apos;t listed, so the room may be in use when nothing
               shows here. Times and rooms can change, so check{" "}
               <a href="https://classes.berkeley.edu" target="_blank" rel="noreferrer">classes.berkeley.edu</a> before you go.
+              {selected.seats !== null && (
+                <>
+                  {" "}Seat count from UC Berkeley&apos;s{" "}
+                  <a href={CLASSROOM_DATABASE_URL} target="_blank" rel="noreferrer">classroom database</a>.
+                </>
+              )}
             </p>
           </div>
         )}
@@ -366,7 +376,10 @@ export function RoomsTab({
           <p className="result-count">Busiest rooms</p>
           <div className="chips">
             {busiest.map((r) => (
-              <button key={r.key} type="button" className="chip chip--sm" onClick={() => pickRoom(r.key)}>{r.label}</button>
+              <button key={r.key} type="button" className="chip chip--sm" onClick={() => pickRoom(r.key)}>
+                {r.label}
+                {r.seats !== null && <span className="chip-seats"> · {seatsLabel(r.seats)}</span>}
+              </button>
             ))}
           </div>
         </div>
@@ -385,7 +398,10 @@ export function RoomsTab({
                   <span className="search-group-title">{r.label}</span>
                 </div>
                 <div className="search-group-meta">
-                  <span className="search-group-count">{r.meetingsPerWeek} {r.meetingsPerWeek === 1 ? "lecture" : "lectures"} a week</span>
+                  <span className="search-group-count">
+                    {r.seats !== null && `${seatsLabel(r.seats)} · `}
+                    {r.meetingsPerWeek} {r.meetingsPerWeek === 1 ? "lecture" : "lectures"} a week
+                  </span>
                 </div>
                 <span className="search-group-chevron">→</span>
               </button>

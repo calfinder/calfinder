@@ -15,6 +15,8 @@ export type RoomSlot = {
   meetDays: string;
   startTime: string;
   endTime: string;
+  /** The room's seat count from UC Berkeley's classroom database, when it lists the room */
+  seats?: number;
 };
 
 /**

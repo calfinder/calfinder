@@ -103,7 +103,7 @@ async function _load(): Promise<Course[]> {
  */
 export async function loadRoomSchedule(): Promise<RoomSlot[]> {
   if (_roomCache && process.env.NODE_ENV !== "development") return _roomCache;
-  const data = await readData();
+  const [data, seatsByRoom] = await Promise.all([readData(), readRoomSeats()]);
   if (!data) return [];
 
   const byCatalogId = new Map(data.catalog.map((c) => [c.id, c]));
@@ -118,6 +118,7 @@ export async function loadRoomSchedule(): Promise<RoomSlot[]> {
   _roomCache = [...slots.values()].map((copies) => {
     const main = copies.reduce((a, b) => ((b.enrolledCount ?? 0) > (a.enrolledCount ?? 0) ? b : a));
     const cat = byCatalogId.get(main.catalogId)!;
+    const seats = seatsByRoom.get(normalizeRoom(main.building, main.room).key);
     return {
       ids: copies.map((o) => String(o.id)),
       code: `${cat.subject} ${cat.courseNumber}`,
@@ -126,8 +127,23 @@ export async function loadRoomSchedule(): Promise<RoomSlot[]> {
       room: main.room,
       meetDays: main.meetDays,
       startTime: main.startTime,
-      endTime: main.endTime
+      endTime: main.endTime,
+      ...(seats ? { seats } : {})
     };
   });
   return _roomCache;
+}
+
+/**
+ * Seat counts by room key, from data/room-capacity.json (built from UC Berkeley's classroom
+ * database). Rooms the database doesn't list, like department-run rooms, simply have no count.
+ */
+async function readRoomSeats(): Promise<Map<string, number>> {
+  try {
+    const raw = await fs.readFile(path.join(process.cwd(), "data", "room-capacity.json"), "utf8");
+    const { rooms } = JSON.parse(raw) as { rooms: Record<string, { seats: number }> };
+    return new Map(Object.entries(rooms).map(([key, r]) => [key, r.seats]));
+  } catch {
+    return new Map();
+  }
 }
