@@ -1,0 +1,654 @@
+{
+  "source": "https://classrooms.berkeley.edu/classroom-database",
+  "fetched": "2026-10-05",
+  "rooms": {
+    "anthro/art practice bldg|115": {
+      "seats": 25,
+      "url": "https://classrooms.berkeley.edu/classroom-database/anthropology-and-art-practice-0115"
+    },
+    "anthro/art practice bldg|155": {
+      "seats": 61,
+      "url": "https://classrooms.berkeley.edu/classroom-database/anthropology-and-art-practice-0155"
+    },
+    "anthro/art practice bldg|160": {
+      "seats": 138,
+      "url": "https://classrooms.berkeley.edu/classroom-database/anthropology-and-art-practice-0160"
+    },
+    "barker|101": {
+      "seats": 93,
+      "url": "https://classrooms.berkeley.edu/classroom-database/barker-0101"
+    },
+    "barker|110": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/barker-0110"
+    },
+    "birge|50": {
+      "seats": 159,
+      "url": "https://classrooms.berkeley.edu/classroom-database/birge-0050"
+    },
+    "cory|241": {
+      "seats": 54,
+      "url": "https://classrooms.berkeley.edu/classroom-database/cory-0241"
+    },
+    "cory|247": {
+      "seats": 63,
+      "url": "https://classrooms.berkeley.edu/classroom-database/cory-0247"
+    },
+    "cory|277": {
+      "seats": 131,
+      "url": "https://classrooms.berkeley.edu/classroom-database/cory-0277"
+    },
+    "cory|289": {
+      "seats": 41,
+      "url": "https://classrooms.berkeley.edu/classroom-database/cory-0289"
+    },
+    "davis|534": {
+      "seats": 85,
+      "url": "https://classrooms.berkeley.edu/classroom-database/davis-0534"
+    },
+    "dwinelle|79": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0079"
+    },
+    "dwinelle|83": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0083"
+    },
+    "dwinelle|87": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0087"
+    },
+    "dwinelle|88": {
+      "seats": 56,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0088"
+    },
+    "dwinelle|89": {
+      "seats": 20,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0089"
+    },
+    "dwinelle|104": {
+      "seats": 15,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0104"
+    },
+    "dwinelle|105": {
+      "seats": 32,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0105"
+    },
+    "dwinelle|106": {
+      "seats": 25,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0106"
+    },
+    "dwinelle|109": {
+      "seats": 40,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0109"
+    },
+    "dwinelle|130": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0130"
+    },
+    "dwinelle|134": {
+      "seats": 22,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0134"
+    },
+    "dwinelle|145": {
+      "seats": 217,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0145"
+    },
+    "dwinelle|155": {
+      "seats": 481,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0155"
+    },
+    "dwinelle|179": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0179"
+    },
+    "dwinelle|182": {
+      "seats": 48,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0182"
+    },
+    "dwinelle|183": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0183"
+    },
+    "dwinelle|187": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0187"
+    },
+    "dwinelle|189": {
+      "seats": 20,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0189"
+    },
+    "dwinelle|204": {
+      "seats": 17,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0204"
+    },
+    "dwinelle|205": {
+      "seats": 32,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0205"
+    },
+    "dwinelle|206": {
+      "seats": 25,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0206"
+    },
+    "dwinelle|209": {
+      "seats": 40,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0209"
+    },
+    "dwinelle|210": {
+      "seats": 17,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0210"
+    },
+    "dwinelle|211": {
+      "seats": 18,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0211"
+    },
+    "dwinelle|215": {
+      "seats": 40,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0215"
+    },
+    "dwinelle|219": {
+      "seats": 56,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0219"
+    },
+    "dwinelle|223": {
+      "seats": 40,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0223"
+    },
+    "dwinelle|225": {
+      "seats": 18,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0225"
+    },
+    "dwinelle|228": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0228"
+    },
+    "dwinelle|229": {
+      "seats": 40,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0229"
+    },
+    "dwinelle|233": {
+      "seats": 19,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0233"
+    },
+    "dwinelle|234": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0234"
+    },
+    "dwinelle|235": {
+      "seats": 25,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0235"
+    },
+    "dwinelle|242": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0242"
+    },
+    "dwinelle|243": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0243"
+    },
+    "dwinelle|246": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0246"
+    },
+    "dwinelle|247": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0247"
+    },
+    "dwinelle|250": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0250"
+    },
+    "dwinelle|251": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0251"
+    },
+    "dwinelle|254": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0254"
+    },
+    "dwinelle|255": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0255"
+    },
+    "dwinelle|258": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0258"
+    },
+    "dwinelle|259": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0259"
+    },
+    "dwinelle|262": {
+      "seats": 20,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0262"
+    },
+    "dwinelle|263": {
+      "seats": 21,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0263"
+    },
+    "dwinelle|283": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/dwinelle-0283"
+    },
+    "etcheverry|3105": {
+      "seats": 37,
+      "url": "https://classrooms.berkeley.edu/classroom-database/etcheverry-3105"
+    },
+    "etcheverry|3106": {
+      "seats": 75,
+      "url": "https://classrooms.berkeley.edu/classroom-database/etcheverry-3106"
+    },
+    "etcheverry|3107": {
+      "seats": 45,
+      "url": "https://classrooms.berkeley.edu/classroom-database/etcheverry-3107"
+    },
+    "etcheverry|3108": {
+      "seats": 75,
+      "url": "https://classrooms.berkeley.edu/classroom-database/etcheverry-3108"
+    },
+    "etcheverry|3109": {
+      "seats": 45,
+      "url": "https://classrooms.berkeley.edu/classroom-database/etcheverry-3109"
+    },
+    "etcheverry|3111": {
+      "seats": 45,
+      "url": "https://classrooms.berkeley.edu/classroom-database/etcheverry-3111"
+    },
+    "etcheverry|3113": {
+      "seats": 45,
+      "url": "https://classrooms.berkeley.edu/classroom-database/etcheverry-3113"
+    },
+    "genetics & plant bio|100": {
+      "seats": 204,
+      "url": "https://classrooms.berkeley.edu/classroom-database/genetics-and-plant-biology-0100"
+    },
+    "genetics & plant bio|103": {
+      "seats": 47,
+      "url": "https://classrooms.berkeley.edu/classroom-database/genetics-and-plant-biology-0103"
+    },
+    "genetics & plant bio|104": {
+      "seats": 16,
+      "url": "https://classrooms.berkeley.edu/classroom-database/genetics-and-plant-biology-0104"
+    },
+    "genetics & plant bio|107": {
+      "seats": 47,
+      "url": "https://classrooms.berkeley.edu/classroom-database/genetics-and-plant-biology-0107"
+    },
+    "giannini|141": {
+      "seats": 50,
+      "url": "https://classrooms.berkeley.edu/classroom-database/giannini-0141"
+    },
+    "giannini|201": {
+      "seats": 24,
+      "url": "https://classrooms.berkeley.edu/classroom-database/giannini-0201"
+    },
+    "giannini|332": {
+      "seats": 16,
+      "url": "https://classrooms.berkeley.edu/classroom-database/giannini-0332"
+    },
+    "gspp|150": {
+      "seats": 86,
+      "url": "https://classrooms.berkeley.edu/classroom-database/goldman-school-public-policy-0150"
+    },
+    "haas faculty wing|f295": {
+      "seats": 299,
+      "url": "https://classrooms.berkeley.edu/classroom-database/haas-f295"
+    },
+    "haviland|12": {
+      "seats": 54,
+      "url": "https://classrooms.berkeley.edu/classroom-database/haviland-0012"
+    },
+    "haviland|214": {
+      "seats": 18,
+      "url": "https://classrooms.berkeley.edu/classroom-database/haviland-0214"
+    },
+    "haviland|321": {
+      "seats": 18,
+      "url": "https://classrooms.berkeley.edu/classroom-database/haviland-0321"
+    },
+    "hearst field annex|a1": {
+      "seats": 227,
+      "url": "https://classrooms.berkeley.edu/classroom-database/hearst-annex-a1"
+    },
+    "hearst field annex|b5": {
+      "seats": 46,
+      "url": "https://classrooms.berkeley.edu/classroom-database/hearst-annex-b5"
+    },
+    "hearst gym|242": {
+      "seats": 36,
+      "url": "https://classrooms.berkeley.edu/classroom-database/hearst-gym-0242"
+    },
+    "hearst mining|310": {
+      "seats": 48,
+      "url": "https://classrooms.berkeley.edu/classroom-database/hearst-mining-0310"
+    },
+    "hearst mining|390": {
+      "seats": 160,
+      "url": "https://classrooms.berkeley.edu/classroom-database/hearst-mining-0390"
+    },
+    "hildebrand|b51": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/hildebrand-b51"
+    },
+    "latimer|105": {
+      "seats": 34,
+      "url": "https://classrooms.berkeley.edu/classroom-database/latimer-0105"
+    },
+    "latimer|120": {
+      "seats": 182,
+      "url": "https://classrooms.berkeley.edu/classroom-database/latimer-0120"
+    },
+    "lewis|9": {
+      "seats": 72,
+      "url": "https://classrooms.berkeley.edu/classroom-database/lewis-0009"
+    },
+    "lewis|100": {
+      "seats": 261,
+      "url": "https://classrooms.berkeley.edu/classroom-database/lewis-0100"
+    },
+    "li ka shing|245": {
+      "seats": 297,
+      "url": "https://classrooms.berkeley.edu/classroom-database/li-ka-shing-0245"
+    },
+    "mccone|141": {
+      "seats": 90,
+      "url": "https://classrooms.berkeley.edu/classroom-database/mccone-0141"
+    },
+    "morgan|101": {
+      "seats": 142,
+      "url": "https://classrooms.berkeley.edu/classroom-database/morgan-0101"
+    },
+    "morgan|109": {
+      "seats": 40,
+      "url": "https://classrooms.berkeley.edu/classroom-database/morgan-0109"
+    },
+    "mulford|159": {
+      "seats": 141,
+      "url": "https://classrooms.berkeley.edu/classroom-database/mulford-0159"
+    },
+    "mulford|240": {
+      "seats": 50,
+      "url": "https://classrooms.berkeley.edu/classroom-database/mulford-0240"
+    },
+    "mulford|230": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/mulford-0230"
+    },
+    "mulford|106": {
+      "seats": 15,
+      "url": "https://classrooms.berkeley.edu/classroom-database/mulford-0106"
+    },
+    "mulford|107": {
+      "seats": 16,
+      "url": "https://classrooms.berkeley.edu/classroom-database/mulford-0107"
+    },
+    "north gate|105": {
+      "seats": 139,
+      "url": "https://classrooms.berkeley.edu/classroom-database/north-gate-0105"
+    },
+    "physics building|1": {
+      "seats": 216,
+      "url": "https://classrooms.berkeley.edu/classroom-database/physics-0001"
+    },
+    "physics building|2": {
+      "seats": 100,
+      "url": "https://classrooms.berkeley.edu/classroom-database/physics-0002"
+    },
+    "physics building|3": {
+      "seats": 107,
+      "url": "https://classrooms.berkeley.edu/classroom-database/physics-0003"
+    },
+    "physics building|4": {
+      "seats": 195,
+      "url": "https://classrooms.berkeley.edu/classroom-database/physics-0004"
+    },
+    "pimentel|1": {
+      "seats": 527,
+      "url": "https://classrooms.berkeley.edu/classroom-database/pimentel-0001"
+    },
+    "social sciences building|20": {
+      "seats": 75,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0020"
+    },
+    "social sciences building|50": {
+      "seats": 24,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0050"
+    },
+    "social sciences building|54": {
+      "seats": 25,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0054"
+    },
+    "social sciences building|56": {
+      "seats": 55,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0056"
+    },
+    "social sciences building|60": {
+      "seats": 68,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0060"
+    },
+    "social sciences building|78": {
+      "seats": 18,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0078"
+    },
+    "social sciences building|80": {
+      "seats": 24,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0080"
+    },
+    "social sciences building|104": {
+      "seats": 33,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0104"
+    },
+    "social sciences building|110": {
+      "seats": 54,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0110"
+    },
+    "social sciences building|115": {
+      "seats": 18,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0115"
+    },
+    "social sciences building|118": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0118"
+    },
+    "social sciences building|122": {
+      "seats": 36,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0122"
+    },
+    "social sciences building|126": {
+      "seats": 69,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0126"
+    },
+    "social sciences building|136": {
+      "seats": 36,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0136"
+    },
+    "social sciences building|140": {
+      "seats": 47,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0140"
+    },
+    "social sciences building|151": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0151"
+    },
+    "social sciences building|155": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0155"
+    },
+    "social sciences building|166": {
+      "seats": 65,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0166"
+    },
+    "social sciences building|170": {
+      "seats": 65,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0170"
+    },
+    "social sciences building|174": {
+      "seats": 28,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0174"
+    },
+    "social sciences building|175": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0175"
+    },
+    "social sciences building|180": {
+      "seats": 20,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0180"
+    },
+    "social sciences building|186": {
+      "seats": 15,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0186"
+    },
+    "social sciences building|581": {
+      "seats": 28,
+      "url": "https://classrooms.berkeley.edu/classroom-database/social-sciences-0581"
+    },
+    "stanley|105": {
+      "seats": 292,
+      "url": "https://classrooms.berkeley.edu/classroom-database/stanley-0105"
+    },
+    "stanley|106": {
+      "seats": 114,
+      "url": "https://classrooms.berkeley.edu/classroom-database/stanley-0106"
+    },
+    "stanley|177": {
+      "seats": 45,
+      "url": "https://classrooms.berkeley.edu/classroom-database/stanley-0177"
+    },
+    "stanley|179": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/stanley-0179"
+    },
+    "tan|180": {
+      "seats": 76,
+      "url": "https://classrooms.berkeley.edu/classroom-database/tan-0180"
+    },
+    "valley life sciences|2030": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/vlsb-2030"
+    },
+    "valley life sciences|2032": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/vlsb-2032"
+    },
+    "valley life sciences|2038": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/vlsb-2038"
+    },
+    "valley life sciences|2040": {
+      "seats": 158,
+      "url": "https://classrooms.berkeley.edu/classroom-database/vlsb-2040"
+    },
+    "valley life sciences|2060": {
+      "seats": 157,
+      "url": "https://classrooms.berkeley.edu/classroom-database/vlsb-2060"
+    },
+    "valley life sciences|2062": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/vlsb-2062"
+    },
+    "valley life sciences|2066": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/vlsb-2066"
+    },
+    "valley life sciences|2070": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/vlsb-2070"
+    },
+    "joan and sanford i. weill|101": {
+      "seats": 91,
+      "url": "https://classrooms.berkeley.edu/classroom-database/weill-0101"
+    },
+    "wheeler|20": {
+      "seats": 48,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0020"
+    },
+    "wheeler|24": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0024"
+    },
+    "wheeler|30": {
+      "seats": 35,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0030"
+    },
+    "wheeler|100": {
+      "seats": 20,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0100"
+    },
+    "wheeler|102": {
+      "seats": 60,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0102"
+    },
+    "wheeler|104": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0104"
+    },
+    "wheeler|106": {
+      "seats": 29,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0106"
+    },
+    "wheeler|108": {
+      "seats": 48,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0108"
+    },
+    "wheeler|120": {
+      "seats": 40,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0120"
+    },
+    "wheeler|122": {
+      "seats": 19,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0122"
+    },
+    "wheeler|124": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0124"
+    },
+    "wheeler|126": {
+      "seats": 30,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0126"
+    },
+    "wheeler|130": {
+      "seats": 41,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0130"
+    },
+    "wheeler|200": {
+      "seats": 40,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0200"
+    },
+    "wheeler|202": {
+      "seats": 42,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0202"
+    },
+    "wheeler|204": {
+      "seats": 54,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0204"
+    },
+    "wheeler|212": {
+      "seats": 122,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0212"
+    },
+    "wheeler|220": {
+      "seats": 40,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0220"
+    },
+    "wheeler|222": {
+      "seats": 64,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0222"
+    },
+    "wheeler|224": {
+      "seats": 36,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-0224"
+    },
+    "wheeler|150": {
+      "seats": 744,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wheeler-auditorium-0150"
+    },
+    "wurster|101": {
+      "seats": 48,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wurster-0101"
+    },
+    "wurster|102": {
+      "seats": 61,
+      "url": "https://classrooms.berkeley.edu/classroom-database/wurster-0102"
+    }
+  }
+}
