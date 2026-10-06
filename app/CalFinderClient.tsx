@@ -49,6 +49,8 @@ const FREE_RANGE_MIN_GAP = 30;
 
 // Tabs a link can open with ?tab=
 const LINKABLE_TABS: TopTab[] = ["search", "rooms", "saved", "categories"];
+// ?class= and ?room= values look like "math-54-mwf-0800"; anything else is ignored
+const LINK_SLUG = /^[a-z0-9-]{1,60}$/;
 
 export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }) {
   const preparedCourses = useMemo(
@@ -140,15 +142,16 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
     const params = new URLSearchParams(window.location.search);
     const classParam = params.get("class");
     const roomParam = params.get("room");
+    const validRoom = roomParam && LINK_SLUG.test(roomParam) ? roomParam : null;
     const tabParam = params.get("tab") as TopTab | null;
-    const linked = classParam ? allCourses.find((c) => classSlug(c) === classParam) : undefined;
+    const linked = classParam && LINK_SLUG.test(classParam) ? allCourses.find((c) => classSlug(c) === classParam) : undefined;
     if (linked) {
       setSearchQuery(linked.code);
       setExpandedCodes(new Set([linked.code]));
       setCurrentSearchSection(linked.id);
       setTopTab("search");
-    } else if (roomParam) {
-      setPendingRoomSlug(roomParam);
+    } else if (validRoom) {
+      setPendingRoomSlug(validRoom);
       setTopTab("rooms");
     } else if (tabParam && LINKABLE_TABS.includes(tabParam)) {
       setTopTab(tabParam);
@@ -184,12 +187,12 @@ export function CalFinderClient({ initialCourses }: { initialCourses: Course[] }
   useEffect(() => {
     if (!pendingRoomSlug || !roomSlots) return;
     const slot = roomSlots.find((s) => roomSlug(normalizeRoom(s.building, s.room)) === pendingRoomSlug);
+    // A link to a room with no lectures just opens the room search. Its text is never shown on
+    // the page, so a made-up link can't put someone else's words on CalFinder.
     if (slot) {
       const ref = normalizeRoom(slot.building, slot.room);
       setSelectedRoomKey(ref.key);
       setRoomQuery(roomLabel(ref));
-    } else {
-      setRoomQuery(pendingRoomSlug.replace(/-/g, " "));
     }
     setPendingRoomSlug(null);
   }, [pendingRoomSlug, roomSlots]);
