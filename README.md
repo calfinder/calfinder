@@ -24,7 +24,7 @@ CalFinder turns the Berkeley class schedule into something you can browse in you
 
 ## My role
 
-Solo project: idea, data pipeline, design and development. (Some early UI iterations were prototyped with Vercel v0.)
+Solo project: idea, data pipeline, design and development.
 
 ## Running it locally
 
