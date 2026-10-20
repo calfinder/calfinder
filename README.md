@@ -2,8 +2,11 @@
 
 **Find a UC Berkeley lecture to sit in on, right now, near you.**
 
-> 📸 _Screenshot / demo GIF here_ — `docs/screenshot.png`
-> 🔗 Live: _[your Vercel URL]_
+**Live: [calfinder.app](https://calfinder.app)**
+
+![CalFinder Discover: pick a free window, interests and area](docs/discover.png)
+
+![Classes meeting in the chosen window, with class size, topic, time, location and instructor](docs/results.png)
 
 ## What it does
 
@@ -24,7 +27,7 @@ CalFinder turns the Berkeley class schedule into something you can browse in you
 
 ## My role
 
-Solo project: idea, data pipeline, design and development. (Some early UI iterations were prototyped with Vercel v0.)
+Solo project: idea, data pipeline, design and development.
 
 ## Running it locally
 
